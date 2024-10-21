@@ -111,21 +111,33 @@ end
 -- Fonction pour obtenir la pièce la plus proche
 local function getNearestCoin()
 	local nearestCoin = nil
-	local shortestDistance = math.huge  -- Distance infinie
+	local shortestDistance = math.huge  -- Initialiser avec une valeur très grande
 
-	-- Parcourt tous les objets appelés "Coin" dans le Workspace
-	for _, coin in ipairs(game.Workspace:FindFirstChild("Normal"):FindFirstChild("CoinContainer"):GetDescendants()) do
-		if coin:IsA("MeshPart") then
-			local distance = (coin.Position - humanoidRootPart.Position).Magnitude  -- Calcule la distance entre le joueur et la pièce
-
-			if distance < shortestDistance then
-				shortestDistance = distance
-				nearestCoin = coin
-			end
-		end
+	-- Chercher "Normal" partout dans l'arborescence du Workspace
+	local normal = nil
+	for _, obj in ipairs(game.Workspace:GetDescendants()) do
+    		if obj.Name == "Normal" then
+        		normal = obj
+        		break  -- Sortir de la boucle dès qu'on trouve "Normal"
+    		end
 	end
 
-	return nearestCoin
+	-- Vérifier si "Normal" a été trouvé
+	if normal then
+    		local coinContainer = normal:FindFirstChild("CoinContainer")
+    		if coinContainer then
+        		for _, coin in ipairs(coinContainer:GetDescendants()) do
+            			if coin:IsA("MeshPart") then
+                			local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+
+                			if distance < shortestDistance then
+                    				shortestDistance = distance
+                    				nearestCoin = coin
+                			end
+            			end
+        		end
+    		end
+	end
 end
 
 -- Fonction pour obtenir une pièce aléatoire dans le Workspace
