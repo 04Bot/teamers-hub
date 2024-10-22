@@ -108,16 +108,6 @@ local function moveFrame(innerFrame, targetPosition)
 	tween:Play()  -- Joue l'animation
 end
 
-local TweenService = game:GetService("TweenService")  -- Service pour gérer les animations
-local active = false  -- État initial pour AutoFarm
-local active_RandomCoin = false -- État initial pour RandomCoin
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()  -- Attends que le personnage soit chargé
-local humanoidRootPart = character:WaitForChild("HumanoidRootPart")  -- Cible le HumanoidRootPart
-local tween  -- Variable globale pour le tween en cours
-local speed = 22  -- Vitesse constante de 22 unités par seconde
-local detectionRadius = 5
-
 -- Fonction pour désactiver les collisions du personnage
 local function setCollisions(enabled)
     local character = humanoidRootPart.Parent  -- Obtenir le personnage du HumanoidRootPart
@@ -178,55 +168,76 @@ local function getRandomCoin()
     return nil
 end
 
+-- Fonction pour téléporter le joueur vers une pièce
+local function teleportToCoin(coin)
+    if coin and humanoidRootPart then
+        humanoidRootPart.Position = coin.Position + Vector3.new(0, 3, 0)  -- Ajuste la hauteur
+    end
+end
+
+-- Fonction pour obtenir un spawn aléatoire dans le lobby
+local function getRandomSpawn()
+    local spawns = game.Workspace.Lobby:GetChildren()
+    local validSpawns = {}
+
+    for _, spawn in ipairs(spawns) do
+        if spawn:IsA("BasePart") then
+            table.insert(validSpawns, spawn)
+        end
+    end
+
+    if #validSpawns > 0 then
+        return validSpawns[math.random(1, #validSpawns)]
+    end
+
+    return nil
+end
+
 -- Fonction principale pour la chasse aux pièces
 local function startCoinHunt()
     if active then
         local currentCoin
 
-        -- Choisit la pièce initiale en fonction de l'état de RandomCoin
         if active_RandomCoin then
-            currentCoin = getRandomCoin()  -- Sélectionne une pièce aléatoire
+            currentCoin = getRandomCoin()
         else
-            currentCoin = getNearestCoin()  -- Sélectionne la pièce la plus proche
+            currentCoin = getNearestCoin()
         end
 
-        -- Désactiver les collisions du personnage pendant la collecte
         setCollisions(false)
 
         while active do
-            wait(0.1)  -- Petite pause pour limiter les vérifications
+            wait(0.1)
 
-            -- Vérifie si la pièce actuelle existe encore
             if currentCoin and currentCoin:IsDescendantOf(game.Workspace) then
-                teleportToCoin(currentCoin)  -- Téléporte le joueur vers la pièce actuelle
-		print("Pièce collectée : " .. currentCoin.Name)  -- Imprime le nom de la pièce collectée
-	
-		-- Téléporter le joueur au lobby à un spawn aléatoire
-		local randomSpawn = getRandomSpawn()
-		if randomSpawn then
-			humanoidRootPart.Position = randomSpawn.Position + Vector3.new(0, 3, 0)  -- Téléporte le joueur au spawn
-		else
-			print("Aucun spawn valide trouvé dans le lobby.")
-		end
-	
-		-- Sélectionne une nouvelle pièce après la collecte
-		if active_RandomCoin then
-			currentCoin = getRandomCoin()  -- Sélectionne une nouvelle pièce aléatoire
-		else
-			currentCoin = getNearestCoin()  -- Sélectionne la nouvelle pièce la plus proche
-		end
+                teleportToCoin(currentCoin)  -- Assurez-vous que cela fonctionne maintenant
+
+                if isNearCoin(currentCoin) then
+                    print("Pièce collectée : " .. currentCoin.Name)
+                    currentCoin:Destroy()
+
+                    local randomSpawn = getRandomSpawn()
+                    if randomSpawn then
+                        humanoidRootPart.Position = randomSpawn.Position + Vector3.new(0, 3, 0)
+                    else
+                        print("Aucun spawn valide trouvé dans le lobby.")
+                    end
+
+                    if active_RandomCoin then
+                        currentCoin = getRandomCoin()
+                    else
+                        currentCoin = getNearestCoin()
+                    end
+                end
             else
-                print("Aucune pièce actuelle ou pièce détruite. Recherche d'une nouvelle pièce.")
-                -- Si currentCoin est nil ou n'est plus valide, recherche une nouvelle pièce
                 if active_RandomCoin then
-                    currentCoin = getRandomCoin()  -- Recherche une nouvelle pièce aléatoire
+                    currentCoin = getRandomCoin()
                 else
-                    currentCoin = getNearestCoin()  -- Recherche la pièce la plus proche
+                    currentCoin = getNearestCoin()
                 end
             end
         end
 
-        -- Réactiver les collisions après la collecte
         setCollisions(true)
     end
 end
