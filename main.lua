@@ -110,137 +110,154 @@ end
 
 -- Fonction pour obtenir la pièce la plus proche
 local function getNearestCoin()
-	local nearestCoin = nil
-	local shortestDistance = math.huge  -- Initialiser avec une valeur très grande
+    local nearestCoin = nil
+    local shortestDistance = math.huge  -- Initialiser avec une valeur très grande
 
-	-- Chercher "Normal" partout dans l'arborescence du Workspace
-	local normal = nil
-	for _, obj in ipairs(game.Workspace:GetDescendants()) do
-    		if obj.Name == "Normal" then
-        		normal = obj
-        		break  -- Sortir de la boucle dès qu'on trouve "Normal"
-    		end
-	end
+    -- Chercher "Normal" partout dans l'arborescence du Workspace
+    local normal = nil
+    for _, obj in ipairs(game.Workspace:GetDescendants()) do
+        if obj.Name == "Normal" then
+            normal = obj
+            break  -- Sortir de la boucle dès qu'on trouve "Normal"
+        end
+    end
 
-	-- Vérifier si "Normal" a été trouvé
-	if normal then
-    		local coinContainer = normal:FindFirstChild("CoinContainer")
-    		if coinContainer then
-        		for _, coin in ipairs(coinContainer:GetDescendants()) do
-            			if coin:IsA("MeshPart") then
-                			local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+    -- Vérifier si "Normal" a été trouvé
+    if normal then
+        local coinContainer = normal:FindFirstChild("CoinContainer")
+        if coinContainer then
+            for _, coin in ipairs(coinContainer:GetDescendants()) do
+                if coin:IsA("MeshPart") then
+                    local distance = (coin.Position - humanoidRootPart.Position).Magnitude
 
-                			if distance < shortestDistance then
-                    				shortestDistance = distance
-                    				nearestCoin = coin
-                			end
-            			end
-        		end
-    		end
-	end
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        nearestCoin = coin
+                    end
+                end
+            end
+        end
+    end
+
+    if nearestCoin then
+        print("Pièce la plus proche trouvée : " .. nearestCoin.Name)
+    else
+        print("Aucune pièce trouvée.")
+    end
+
+    return nearestCoin
 end
 
 -- Fonction pour obtenir une pièce aléatoire dans le Workspace
 local function getRandomCoin()
-	local coins = {}
+    local coins = {}
 
-	-- Parcourt tous les objets dans le Workspace pour trouver ceux qui sont des pièces
-	for _, coin in ipairs(game.Workspace:FindFirstChild("Normal"):FindFirstChild("CoinContainer"):GetDescendants()) do
-		if coin:IsA("MeshPart") then
-			table.insert(coins, coin)  -- Ajoute la pièce dans la table
-		end
-	end
+    -- Parcourt tous les objets dans le Workspace pour trouver ceux qui sont des pièces
+    for _, coin in ipairs(game.Workspace:FindFirstChild("Normal"):FindFirstChild("CoinContainer"):GetDescendants()) do
+        if coin:IsA("MeshPart") then
+            table.insert(coins, coin)  -- Ajoute la pièce dans la table
+        end
+    end
 
-	-- Si des pièces sont trouvées, retourne une pièce aléatoire
-	if #coins > 0 then
-		return coins[math.random(1, #coins)]  -- Sélectionne et retourne une pièce aléatoire
-	end
+    -- Si des pièces sont trouvées, retourne une pièce aléatoire
+    if #coins > 0 then
+        local randomCoin = coins[math.random(1, #coins)]
+        print("Pièce aléatoire sélectionnée : " .. randomCoin.Name)
+        return randomCoin  -- Sélectionne et retourne une pièce aléatoire
+    end
 
-	-- Si aucune pièce n'est trouvée, retourne nil
-	return nil
+    -- Si aucune pièce n'est trouvée, retourne nil
+    print("Aucune pièce aléatoire trouvée.")
+    return nil
 end
 
 -- Fonction pour déplacer le joueur vers une pièce à une vitesse constante
 local function moveToCoin(coin, callback)
-	if coin and humanoidRootPart then
-		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-		local duration = distance / speed  -- Calcule la durée du déplacement en fonction de la distance et de la vitesse
+    if coin and humanoidRootPart then
+        local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+        local duration = distance / speed  -- Calcule la durée du déplacement en fonction de la distance et de la vitesse
 
-		local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-		local targetPosition = {CFrame = CFrame.new(coin.Position)}
+        local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local targetPosition = {CFrame = CFrame.new(coin.Position)}
 
-		-- Si un tween est déjà en cours, on le stoppe
-		if tween then
-			tween:Cancel()
-		end
+        -- Si un tween est déjà en cours, on le stoppe
+        if tween then
+            tween:Cancel()
+        end
 
-		-- Crée un nouveau tween
-		tween = TweenService:Create(humanoidRootPart, tweenInfo, targetPosition)
-		tween:Play()
-	end
-end
+        print("Déplacement vers la pièce : " .. coin.Name .. " Distance : " .. distance)
 
--- Fonction pour vérifier si le joueur est assez proche de la pièce
-local function isNearCoin(coin)
-	if coin and humanoidRootPart then
-		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-		return distance <= detectionRadius  -- Retourne vrai si la distance est inférieure ou égale au rayon de détection
-	end
-	return false
+        -- Crée un nouveau tween
+        tween = TweenService:Create(humanoidRootPart, tweenInfo, targetPosition)
+        tween:Play()
+    end
 end
 
 -- Fonction principale pour la chasse aux pièces
 local function startCoinHunt()
-	-- Si on est dans la boucle active
-	if active then
-		local currentCoin = getNearestCoin() -- Sélectionne une pièce aléatoire
+    while active do
+        local currentCoin
+        if active_RandomCoin then
+            currentCoin = getRandomCoin()  -- Sélectionne une pièce aléatoire
+        else
+            currentCoin = getNearestCoin()  -- Sélectionne la pièce la plus proche
+        end
 
-		while active and currentCoin do
-			wait(0.1)  -- Petite pause pour limiter les vérifications
-
-			-- Déplace le joueur vers la pièce
-			moveToCoin(currentCoin)
-			
-			currentCoin = getNearestCoin()
-		end
-	end
+        if currentCoin then
+            moveToCoin(currentCoin, function()
+                print("Prêt à sélectionner une nouvelle pièce.")
+                wait(0.1)  -- Petite pause
+                -- Sélectionne une nouvelle pièce en fonction de l'état de active_RandomCoin
+                if active_RandomCoin then
+                    currentCoin = getRandomCoin()
+                else
+                    currentCoin = getNearestCoin()
+                end
+            end)
+        else
+            print("Aucune pièce à chasser.")
+        end
+        wait(0.1)  -- Pause pour limiter les vérifications
+    end
 end
 
 AutoFarm.MouseButton1Click:Connect(function()
-	local outerFrame = AutoFarm:FindFirstChild("Frame")
-	local innerFrame = outerFrame:FindFirstChild("Frame")
+    local outerFrame = AutoFarm:FindFirstChild("Frame")
+    local innerFrame = outerFrame:FindFirstChild("Frame")
 
-	if active then
-		-- Si déjà actif, désactiver et arrêter la chasse aux pièces
-		outerFrame.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
-		innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
-		moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
-		active = false
-	else
-		-- Si désactivé, l'activer et commencer la chasse aux pièces
-		outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
-		innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-		moveFrame(innerFrame, UDim2.new(0.5, 0, 0.089, 0))  -- Nouvelle position
-		active = true
-
-		-- Démarrer la chasse aux pièces
-		startCoinHunt()
-	end
+    if active then
+        -- Si déjà actif, désactiver et arrêter la chasse aux pièces
+        outerFrame.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
+        innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
+        moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
+        active = false
+        print("AutoFarm désactivé.")
+    else
+        -- Si désactivé, l'activer et commencer la chasse aux pièces
+        outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
+        innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+        moveFrame(innerFrame, UDim2.new(0.5, 0, 0.089, 0))  -- Nouvelle position
+        active = true
+        print("AutoFarm activé. Début de la chasse aux pièces.")
+        startCoinHunt()  -- Démarrer la chasse aux pièces
+    end
 end)
 
 RandomCoin.MouseButton1Click:Connect(function()
-	local outerFrame = RandomCoin:FindFirstChild("Frame")
-	local innerFrame = outerFrame:FindFirstChild("Frame")
+    local outerFrame = RandomCoin:FindFirstChild("Frame")
+    local innerFrame = outerFrame:FindFirstChild("Frame")
 
-	if active_RandomCoin then
-		outerFrame.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
-		innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
-		moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
-		active_RandomCoin = false
-	else
-		outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
-		innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
-		moveFrame(innerFrame, UDim2.new(0.5, 0, 0.089, 0))  -- Nouvelle position
-		active_RandomCoin = true
-	end
+    if active_RandomCoin then
+        outerFrame.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
+        innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
+        moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
+        active_RandomCoin = false
+        print("RandomCoin désactivé.")
+    else
+        outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
+        innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+        moveFrame(innerFrame, UDim2.new(0.5, 0, 0.089, 0))  -- Nouvelle position
+        active_RandomCoin = true
+        print("RandomCoin activé.")
+    end
 end)
