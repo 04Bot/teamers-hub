@@ -193,8 +193,11 @@ local function getRandomCoin()
     return nil
 end
 
+local isCoinHuntRunning = false  -- Verrou pour empêcher la double exécution
+
 local function startCoinHunt()
-    if active then
+    if active and not isCoinHuntRunning then  -- Vérifie si le farm est actif et non déjà en cours
+        isCoinHuntRunning = true  -- Verrouiller pour empêcher un double lancement
         local currentCoin
 
         if active_RandomCoin then
@@ -209,21 +212,20 @@ local function startCoinHunt()
             wait(0.1)
 
             if currentCoin and currentCoin:IsDescendantOf(game.Workspace) then
-                teleportToCoin(currentCoin)  -- Téléporte le joueur vers la pièce
-                wait(0.5)  -- Attendre après la téléportation
+                teleportToCoin(currentCoin)  -- Téléportation à la pièce
+                wait(0.5)  -- Attendre un peu
 
                 if (currentCoin.Position - humanoidRootPart.Position).Magnitude <= 5 then
                     print("Pièce collectée : " .. currentCoin.Name)
+                    currentCoin:Destroy()  -- Simuler la collecte de la pièce
 
                     -- Téléportation au lobby
                     local randomSpawn = getRandomSpawn()
                     if randomSpawn then
                         humanoidRootPart.CFrame = CFrame.new(randomSpawn.Position)  -- Téléportation au spawn
-                    else
-                        print("Aucun spawn valide trouvé dans le lobby.")
                     end
 
-                    -- Attendre dans le lobby avant de reprendre la chasse
+                    -- Attendre dans le lobby
                     wait(lobbyStayDuration)
 
                     -- Sélectionner la prochaine pièce
@@ -234,7 +236,7 @@ local function startCoinHunt()
                     end
                 end
             else
-                -- Si la pièce est détruite ou n'existe plus, rechercher une nouvelle pièce
+                -- Si la pièce est détruite, rechercher une nouvelle pièce
                 if active_RandomCoin then
                     currentCoin = getRandomCoin()
                 else
@@ -244,26 +246,19 @@ local function startCoinHunt()
         end
 
         setCollisions(true)
+        isCoinHuntRunning = false  -- Déverrouiller lorsque le farm est terminé
     end
 end
 
--- Fonction pour reconfigurer le personnage lors du respawn
-local function onCharacterAdded(newCharacter)
+-- Gestion des respawns
+player.CharacterAdded:Connect(function(newCharacter)
     character = newCharacter
     humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
     if active then
         startCoinHunt()  -- Relancer le farm après respawn
     end
-end
-
--- Gestion des respawns
-player.CharacterAdded:Connect(onCharacterAdded)
-
--- Initialisation du personnage actuel
-if character then
-    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
-end
+end)
 
 -- Gestion du bouton AutoFarm
 AutoFarm.MouseButton1Click:Connect(function()
