@@ -193,19 +193,15 @@ end
 local function startCoinHunt()
 	-- Si on est dans la boucle active
 	if active then
-		local currentCoin = getRandomCoin()  -- Sélectionne une pièce aléatoire
+		local currentCoin = getNearestCoin() -- Sélectionne une pièce aléatoire
 
 		while active and currentCoin do
 			wait(0.1)  -- Petite pause pour limiter les vérifications
 
 			-- Déplace le joueur vers la pièce
 			moveToCoin(currentCoin)
-
-			-- Vérifie si le joueur est suffisamment proche de la pièce
-			if isNearCoin(currentCoin) then
-				-- Sélectionne une nouvelle pièce
-				currentCoin = getRandomCoin()
-			end
+			
+			currentCoin = getNearestCoin()
 		end
 	end
 end
