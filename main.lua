@@ -178,38 +178,6 @@ local function getRandomCoin()
     return nil
 end
 
--- Fonction pour déplacer le joueur vers une pièce à une vitesse constante
-local function moveToCoin(coin)
-    if coin and humanoidRootPart then
-        local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-        local duration = distance / speed  -- Calcule la durée du déplacement en fonction de la distance et de la vitesse
-
-        -- Conserve la hauteur actuelle du joueur, mais change la position en X et Y pour se déplacer vers la pièce
-        local targetPosition = humanoidRootPart.Position
-        local targetCF = CFrame.new(coin.Position.X, targetPosition.Y, coin.Position.Z)
-
-        local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-
-        -- Si un tween est déjà en cours, on le stoppe
-        if tween then
-            tween:Cancel()
-        end
-
-        -- Crée un nouveau tween vers la position de la pièce tout en maintenant la hauteur
-        tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCF})
-        tween:Play()
-    end
-end
-
--- Fonction pour vérifier si le joueur est assez proche de la pièce
-local function isNearCoin(coin)
-    if coin and humanoidRootPart then
-        local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-        return distance <= detectionRadius  -- Retourne vrai si la distance est inférieure ou égale au rayon de détection
-    end
-    return false
-end
-
 -- Fonction principale pour la chasse aux pièces
 local function startCoinHunt()
     if active then
@@ -230,22 +198,23 @@ local function startCoinHunt()
 
             -- Vérifie si la pièce actuelle existe encore
             if currentCoin and currentCoin:IsDescendantOf(game.Workspace) then
-                moveToCoin(currentCoin)  -- Déplace le joueur vers la pièce actuelle
-
-                -- Vérifie si le joueur est suffisamment proche de la pièce
-                if isNearCoin(currentCoin) then
-                    print("Pièce collectée : " .. currentCoin.Name)  -- Imprime le nom de la pièce collectée
-
-                    -- Détruire la pièce pour simuler la collecte
-                    currentCoin:Destroy()  -- Assure-toi que la pièce soit détruite dans le jeu
-
-                    -- Sélectionne une nouvelle pièce après la collecte
-                    if active_RandomCoin then
-                        currentCoin = getRandomCoin()  -- Sélectionne une nouvelle pièce aléatoire
-                    else
-                        currentCoin = getNearestCoin()  -- Sélectionne la nouvelle pièce la plus proche
-                    end
-                end
+                teleportToCoin(currentCoin)  -- Téléporte le joueur vers la pièce actuelle
+		print("Pièce collectée : " .. currentCoin.Name)  -- Imprime le nom de la pièce collectée
+	
+		-- Téléporter le joueur au lobby à un spawn aléatoire
+		local randomSpawn = getRandomSpawn()
+		if randomSpawn then
+			humanoidRootPart.Position = randomSpawn.Position + Vector3.new(0, 3, 0)  -- Téléporte le joueur au spawn
+		else
+			print("Aucun spawn valide trouvé dans le lobby.")
+		end
+	
+		-- Sélectionne une nouvelle pièce après la collecte
+		if active_RandomCoin then
+			currentCoin = getRandomCoin()  -- Sélectionne une nouvelle pièce aléatoire
+		else
+			currentCoin = getNearestCoin()  -- Sélectionne la nouvelle pièce la plus proche
+		end
             else
                 print("Aucune pièce actuelle ou pièce détruite. Recherche d'une nouvelle pièce.")
                 -- Si currentCoin est nil ou n'est plus valide, recherche une nouvelle pièce
