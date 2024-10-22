@@ -174,8 +174,7 @@ local function teleportToCoin(coin)
 	humanoidRootPart.CanCollide = true
 end
 
--- Fonction pour déplacer le joueur vers une pièce à une vitesse constante ou téléporter si trop loin
-local function moveToCoin(coin, callback)
+local function moveToCoin(coin)
 	if coin and humanoidRootPart then
 		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
 
@@ -183,10 +182,12 @@ local function moveToCoin(coin, callback)
 		if distance > teleportDistance then
 			teleportToCoin(coin)
 		else
-			-- Sinon, déplacer le joueur avec un tween
-			local duration = distance / speed  -- Calcule la durée du déplacement en fonction de la distance et de la vitesse
-			local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-			local targetPosition = {CFrame = CFrame.new(coin.Position.X, coin.Position.Y - offsetBelowCoin, coin.Position.Z)}
+			-- Désactiver les collisions avant de commencer le tween
+			humanoidRootPart.CanCollide = false
+
+			-- Calculer la durée du déplacement en fonction de la distance et de la vitesse
+			local duration = distance / speed
+			local targetPosition = CFrame.new(coin.Position.X, coin.Position.Y - offsetBelowCoin, coin.Position.Z)
 
 			-- Si un tween est déjà en cours, on le stoppe
 			if tween then
@@ -194,8 +195,12 @@ local function moveToCoin(coin, callback)
 			end
 
 			-- Crée un nouveau tween
-			tween = TweenService:Create(humanoidRootPart, tweenInfo, targetPosition)
+			tween = TweenService:Create(humanoidRootPart, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {CFrame = targetPosition})
 			tween:Play()
+
+			-- Réactiver les collisions une fois le tween terminé
+			tween.Completed:Wait()  -- Attendre que le tween soit terminé
+			humanoidRootPart.CanCollide = true
 		end
 	end
 end
