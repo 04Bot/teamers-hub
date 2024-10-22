@@ -115,9 +115,9 @@ local lobbyStayDuration = 2  -- Temps de séjour dans le lobby avant de reprendr
 local function teleportToCoin(coin)
     if coin and humanoidRootPart then
         -- Remplacer cette ligne :
-        -- humanoidRootPart.Position = coin.Position + Vector3.new(0, 3, 0)  -- Ajuste la hauteur
+        -- humanoidRootPart.Position = coin.Position
         -- Par celle-ci :
-        humanoidRootPart.CFrame = CFrame.new(coin.Position + Vector3.new(0, 3, 0))  -- Téléportation directe en CFrame
+        humanoidRootPart.CFrame = CFrame.new(coin.Position)  -- Téléportation directe en CFrame
     else
         print("Erreur : coin ou humanoidRootPart est nil.")
     end
