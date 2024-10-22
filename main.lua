@@ -108,50 +108,16 @@ local function moveFrame(innerFrame, targetPosition)
 	tween:Play()  -- Joue l'animation
 end
 
-local delayBetweenActions = 1  -- Délai de 0.5 seconde après avoir collecté la pièce
-local lobbyStayDuration = 2  -- Temps de séjour dans le lobby avant de reprendre la chasse aux pièces
-
--- Ajuste la téléportation vers la pièce en évitant de cumuler le décalage
-local function teleportToCoin(coin)
-    if coin and humanoidRootPart then
-        -- Remplacer cette ligne :
-        -- humanoidRootPart.Position = coin.Position
-        -- Par celle-ci :
-        humanoidRootPart.CFrame = CFrame.new(coin.Position)  -- Téléportation directe en CFrame
-    else
-        print("Erreur : coin ou humanoidRootPart est nil.")
-    end
-end
-
-local function getRandomSpawn()
-    local spawns = game.Workspace.Lobby.Spawns:GetChildren()
-    local validSpawns = {}
-
-    for _, spawn in ipairs(spawns) do
-        if spawn:IsA("BasePart") then
-            table.insert(validSpawns, spawn)
-        end
-    end
-
-    if #validSpawns > 0 then
-        local randomSpawn = validSpawns[math.random(1, #validSpawns)]
-        humanoidRootPart.CFrame = CFrame.new(randomSpawn.Position)  -- Téléportation directe sans ajustement de hauteur
-        local humanoid = character:FindFirstChild("Humanoid")
-        if humanoid then
-            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)  -- Faire sauter le joueur après la téléportation
-        end
-        return randomSpawn
-    end
-
-    return nil
-end
-
 -- Fonction pour désactiver les collisions du personnage
 local function setCollisions(enabled)
-    for _, part in ipairs(character:GetChildren()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = enabled
-        end
+    for _, part in ipairs(game.Workspace:GetChildren()) do
+	if part.Name == game.Players.LocalPlayer.Name then
+	    for _, chr in ipairs(part:GetChildren()) do
+	       if chr:IsA("BasePart") then
+            	    chr.CanCollide = enabled
+	        end
+            end
+	end
     end
 end
 
@@ -193,61 +159,73 @@ local function getRandomCoin()
     return nil
 end
 
-local isCoinHuntRunning = false  -- Verrou pour empêcher la double exécution
+-- Fonction pour téléporter le joueur à la pièce
+local function teleportToCoin(coin)
+	-- Désactive les collisions pour permettre au joueur de traverser les murs
+	humanoidRootPart.CanCollide = false
 
+	-- Positionne le joueur directement sous la pièce (offsetBelowCoin unités en dessous)
+	humanoidRootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y - offsetBelowCoin, coin.Position.Z)
+
+	-- Réactive les collisions après une courte période
+	wait(0.1)
+	humanoidRootPart.CanCollide = true
+end
+
+-- Fonction pour déplacer le joueur vers une pièce à une vitesse constante ou téléporter si trop loin
+local function moveToCoin(coin, callback)
+	if coin and humanoidRootPart then
+		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+
+		-- Si la distance est supérieure à 1000 unités, téléportation
+		if distance > teleportDistance then
+			teleportToCoin(coin)
+		else
+			-- Sinon, déplacer le joueur avec un tween
+			local duration = distance / speed  -- Calcule la durée du déplacement en fonction de la distance et de la vitesse
+			local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+			local targetPosition = {CFrame = CFrame.new(coin.Position.X, coin.Position.Y - offsetBelowCoin, coin.Position.Z)}
+
+			-- Si un tween est déjà en cours, on le stoppe
+			if tween then
+				tween:Cancel()
+			end
+
+			-- Crée un nouveau tween
+			tween = TweenService:Create(humanoidRootPart, tweenInfo, targetPosition)
+			tween:Play()
+		end
+	end
+end
+
+-- Fonction pour vérifier si le joueur est assez proche de la pièce
+local function isNearCoin(coin)
+	if coin and humanoidRootPart then
+		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+		return distance <= detectionRadius  -- Retourne vrai si la distance est inférieure ou égale au rayon de détection
+	end
+	return false
+end
+
+-- Fonction principale pour la chasse aux pièces
 local function startCoinHunt()
-    if active and not isCoinHuntRunning then  -- Vérifie si le farm est actif et non déjà en cours
-        isCoinHuntRunning = true  -- Verrouiller pour empêcher un double lancement
-        local currentCoin
+	-- Si on est dans la boucle active
+	if active then
+		local currentCoin = getRandomCoin()  -- Sélectionne une pièce aléatoire
 
-        if active_RandomCoin then
-            currentCoin = getRandomCoin()
-        else
-            currentCoin = getNearestCoin()
-        end
+		while active and currentCoin do
+			wait(0.1)  -- Petite pause pour limiter les vérifications
 
-        setCollisions(false)
+			-- Déplace le joueur vers la pièce ou téléporte s'il est trop loin
+			moveToCoin(currentCoin)
 
-        while active do
-            wait(0.1)
-
-            if currentCoin and currentCoin:IsDescendantOf(game.Workspace) then
-                teleportToCoin(currentCoin)  -- Téléportation à la pièce
-                wait(0.5)  -- Attendre un peu
-
-                if (currentCoin.Position - humanoidRootPart.Position).Magnitude <= 5 then
-                    print("Pièce collectée : " .. currentCoin.Name)
-                    currentCoin:Destroy()  -- Simuler la collecte de la pièce
-
-                    -- Téléportation au lobby
-                    local randomSpawn = getRandomSpawn()
-                    if randomSpawn then
-                        humanoidRootPart.CFrame = CFrame.new(randomSpawn.Position)  -- Téléportation au spawn
-                    end
-
-                    -- Attendre dans le lobby
-                    wait(lobbyStayDuration)
-
-                    -- Sélectionner la prochaine pièce
-                    if active_RandomCoin then
-                        currentCoin = getRandomCoin()
-                    else
-                        currentCoin = getNearestCoin()
-                    end
-                end
-            else
-                -- Si la pièce est détruite, rechercher une nouvelle pièce
-                if active_RandomCoin then
-                    currentCoin = getRandomCoin()
-                else
-                    currentCoin = getNearestCoin()
-                end
-            end
-        end
-
-        setCollisions(true)
-        isCoinHuntRunning = false  -- Déverrouiller lorsque le farm est terminé
-    end
+			-- Vérifie si le joueur est suffisamment proche de la pièce
+			if isNearCoin(currentCoin) then
+				-- Sélectionne une nouvelle pièce
+				currentCoin = getRandomCoin()
+			end
+		end
+	end
 end
 
 -- Gestion des respawns
