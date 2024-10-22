@@ -118,24 +118,14 @@ local tween  -- Variable globale pour le tween en cours
 local speed = 22  -- Vitesse constante de 22 unités par seconde
 local detectionRadius = 5
 
--- Fonction pour désactiver les collisions
-local function disableCollisions(character)
-    for _, part in ipairs(character:GetChildren()) do
-        if part:IsA("BasePart") then  -- Vérifie si c'est une partie physique du corps
-            part.CanCollide = false  -- Désactive les collisions
-        end
-    end
-    print("Collisions du personnage désactivées.")
-end
-
--- Fonction pour réactiver les collisions
-local function enableCollisions(character)
+-- Fonction pour désactiver les collisions du personnage
+local function setCollisions(enabled)
+    local character = humanoidRootPart.Parent  -- Obtenir le personnage du HumanoidRootPart
     for _, part in ipairs(character:GetChildren()) do
         if part:IsA("BasePart") then
-            part.CanCollide = true  -- Réactive les collisions
+            part.CanCollide = enabled  -- Activer ou désactiver les collisions
         end
     end
-    print("Collisions du personnage réactivées.")
 end
 
 -- Fonction pour obtenir la pièce la plus proche
@@ -232,8 +222,8 @@ local function startCoinHunt()
             currentCoin = getNearestCoin()  -- Sélectionne la pièce la plus proche
         end
 
-        -- Désactiver la gravité pendant la collecte
-        humanoidRootPart.Anchored = true
+        -- Désactiver les collisions du personnage pendant la collecte
+        setCollisions(false)
 
         while active do
             wait(0.1)  -- Petite pause pour limiter les vérifications
@@ -267,8 +257,8 @@ local function startCoinHunt()
             end
         end
 
-        -- Réactiver la gravité après la collecte
-        humanoidRootPart.Anchored = false
+        -- Réactiver les collisions après la collecte
+        setCollisions(true)
     end
 end
 
@@ -283,18 +273,12 @@ AutoFarm.MouseButton1Click:Connect(function()
         innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
         active = false
-
-        -- Réactiver les collisions quand on arrête l'AutoFarm
-        enableCollisions(character)
     else
         -- Si désactivé, l'activer et commencer la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
         moveFrame(innerFrame, UDim2.new(0.5, 0, 0.089, 0))  -- Nouvelle position
         active = true
-
-        -- Désactiver les collisions quand l'AutoFarm est activé
-        disableCollisions(character)
 
         -- Démarrer la chasse aux pièces
         startCoinHunt()
