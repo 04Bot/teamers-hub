@@ -235,7 +235,7 @@ local function startCoinHunt()
         while active do
             wait(0.1)  -- Petite pause pour limiter les vérifications
 
-            -- Vérifie si la pièce actuelle existe encore avant d'essayer de s'y déplacer
+            -- Vérifie si la pièce actuelle existe encore
             if currentCoin then
                 moveToCoin(currentCoin)  -- Déplace le joueur vers la pièce actuelle
 
@@ -243,7 +243,10 @@ local function startCoinHunt()
                 if isNearCoin(currentCoin) then
                     print("Pièce collectée : " .. currentCoin.Name)  -- Imprime le nom de la pièce collectée
 
-                    -- Choisit une nouvelle pièce selon le mode actif
+                    -- Détruire la pièce pour simuler la collecte (à adapter selon le jeu)
+                    currentCoin:Destroy()  -- Assure-toi que la pièce soit détruite dans le jeu
+
+                    -- Sélectionne une nouvelle pièce après la collecte
                     if active_RandomCoin then
                         currentCoin = getRandomCoin()  -- Sélectionne une nouvelle pièce aléatoire
                     else
@@ -252,6 +255,7 @@ local function startCoinHunt()
                 end
             else
                 print("Aucune pièce actuelle. Recherche d'une nouvelle pièce.")
+                -- Si currentCoin est nil, recherche une nouvelle pièce
                 if active_RandomCoin then
                     currentCoin = getRandomCoin()  -- Recherche une nouvelle pièce aléatoire
                 else
