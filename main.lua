@@ -109,7 +109,7 @@ local function moveFrame(innerFrame, targetPosition)
 end
 
 local delayBetweenActions = 0.5  -- Délai de 0.5 seconde après avoir collecté la pièce
-local lobbyStayDuration = 1  -- Temps de séjour dans le lobby avant de reprendre la chasse aux pièces
+local lobbyStayDuration = 2  -- Temps de séjour dans le lobby avant de reprendre la chasse aux pièces
 
 -- Fonction pour téléporter le joueur vers une pièce
 local function teleportToCoin(coin)
