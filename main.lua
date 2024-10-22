@@ -194,16 +194,19 @@ local function moveToCoin(coin)
         local distance = (coin.Position - humanoidRootPart.Position).Magnitude
         local duration = distance / speed  -- Calcule la durée du déplacement en fonction de la distance et de la vitesse
 
+        -- Conserve la hauteur actuelle du joueur, mais change la position en X et Y pour se déplacer vers la pièce
+        local targetPosition = humanoidRootPart.Position
+        local targetCF = CFrame.new(coin.Position.X, targetPosition.Y, coin.Position.Z)
+
         local tweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-        local targetPosition = {CFrame = CFrame.new(coin.Position)}
 
         -- Si un tween est déjà en cours, on le stoppe
         if tween then
             tween:Cancel()
         end
 
-        -- Crée un nouveau tween
-        tween = TweenService:Create(humanoidRootPart, tweenInfo, targetPosition)
+        -- Crée un nouveau tween vers la position de la pièce tout en maintenant la hauteur
+        tween = TweenService:Create(humanoidRootPart, tweenInfo, {CFrame = targetCF})
         tween:Play()
     end
 end
