@@ -100,6 +100,8 @@ local humanoidRootPart = character:WaitForChild("HumanoidRootPart")  -- Cible le
 local tween  -- Variable globale pour le tween en cours
 local speed = 22  -- Vitesse constante de 22 unités par seconde
 local detectionRadius = 5
+local teleportDistance = 1000  -- Distance maximale avant téléportation
+local offsetBelowCoin = 5  -- Distance sous la pièce
 
 -- Fonction pour créer et jouer un tween pour déplacer le Frame interne
 local function moveFrame(innerFrame, targetPosition)
