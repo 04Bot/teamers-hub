@@ -122,7 +122,7 @@ end
 
 -- Fonction pour obtenir un spawn aléatoire dans le lobby
 local function getRandomSpawn()
-    local spawns = game.Workspace.Lobby:GetChildren()
+    local spawns = game.Workspace.Lobby.Spawns:GetChildren()
     local validSpawns = {}
 
     for _, spawn in ipairs(spawns) do
