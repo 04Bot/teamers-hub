@@ -144,6 +144,15 @@ local function getRandomSpawn()
     return nil
 end
 
+-- Fonction pour désactiver les collisions du personnage
+local function setCollisions(enabled)
+    for _, part in ipairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = enabled
+        end
+    end
+end
+
 -- Fonction pour obtenir la pièce la plus proche
 local function getNearestCoin()
     local nearestCoin = nil
