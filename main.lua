@@ -167,7 +167,7 @@ local function teleportToCoin(coin)
 	humanoidRootPart.CanCollide = false
 
 	-- Positionne le joueur directement sous la pièce (offsetBelowCoin unités en dessous)
-	humanoidRootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y - offsetBelowCoin, coin.Position.Z)
+	humanoidRootPart.Position = Vector3.new(coin.Position.X, coin.Position.Y - offsetBelowCoin, coin.Position.Z)
 
 	-- Réactive les collisions après une courte période
 	wait(0.1)
@@ -186,28 +186,13 @@ local function moveToCoin(coin)
 			-- Désactiver les collisions avant de commencer le tween
 			humanoidRootPart.CanCollide = false
 
-			-- Créer un BodyPosition pour maintenir le joueur en place
-			local bodyPosition = Instance.new("BodyPosition")
-			bodyPosition.Position = humanoidRootPart.Position  -- Position actuelle
-			bodyPosition.MaxForce = Vector3.new(4000, 4000, 4000)  -- Force maximale
-			bodyPosition.Parent = humanoidRootPart  -- Ajouter au HumanoidRootPart
-
 			-- Calculer la durée du déplacement en fonction de la distance et de la vitesse
 			local duration = distance / speed
 			local targetPosition = CFrame.new(coin.Position.X, coin.Position.Y - offsetBelowCoin, coin.Position.Z)
 
-			-- Crée un nouveau tween
-			tween = TweenService:Create(humanoidRootPart, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {CFrame = targetPosition})
+			-- Crée un tween pour déplacer le HumanoidRootPart
+			local tween = TweenService:Create(humanoidRootPart, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {CFrame = targetPosition})
 			tween:Play()
-
-			-- Attendre que le tween soit terminé
-			tween.Completed:Wait()
-
-			-- Réactiver les collisions
-			humanoidRootPart.CanCollide = true
-
-			-- Nettoyer le BodyPosition après le mouvement
-			bodyPosition:Destroy()
 		end
 	end
 end
