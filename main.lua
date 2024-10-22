@@ -243,6 +243,24 @@ local function startCoinHunt()
     end
 end
 
+-- Fonction pour reconfigurer le personnage lors du respawn
+local function onCharacterAdded(newCharacter)
+    character = newCharacter
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+    if active then
+        startCoinHunt()  -- Relancer le farm après respawn
+    end
+end
+
+-- Gestion des respawns
+player.CharacterAdded:Connect(onCharacterAdded)
+
+-- Initialisation du personnage actuel
+if character then
+    humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+end
+
 -- Gestion du bouton AutoFarm
 AutoFarm.MouseButton1Click:Connect(function()
     local outerFrame = AutoFarm:FindFirstChild("Frame")
