@@ -111,16 +111,19 @@ end
 local delayBetweenActions = 1  -- Délai de 0.5 seconde après avoir collecté la pièce
 local lobbyStayDuration = 2  -- Temps de séjour dans le lobby avant de reprendre la chasse aux pièces
 
--- Fonction pour téléporter le joueur vers une pièce
+-- Ajuste la téléportation vers la pièce en évitant de cumuler le décalage
 local function teleportToCoin(coin)
     if coin and humanoidRootPart then
-        humanoidRootPart.Position = coin.Position + Vector3.new(0, 3, 0)  -- Ajuste la hauteur
+        -- Remplacer cette ligne :
+        -- humanoidRootPart.Position = coin.Position + Vector3.new(0, 3, 0)  -- Ajuste la hauteur
+        -- Par celle-ci :
+        humanoidRootPart.CFrame = CFrame.new(coin.Position + Vector3.new(0, 3, 0))  -- Téléportation directe en CFrame
     else
         print("Erreur : coin ou humanoidRootPart est nil.")
     end
 end
 
--- Fonction pour obtenir un spawn aléatoire dans le lobby
+-- Correction similaire pour la téléportation au spawn aléatoire
 local function getRandomSpawn()
     local spawns = game.Workspace.Lobby.Spawns:GetChildren()
     local validSpawns = {}
@@ -132,19 +135,13 @@ local function getRandomSpawn()
     end
 
     if #validSpawns > 0 then
-        return validSpawns[math.random(1, #validSpawns)]
+        local randomSpawn = validSpawns[math.random(1, #validSpawns)]
+        -- Remplacer ici aussi la Position par CFrame pour éviter un cumul vertical :
+        humanoidRootPart.CFrame = CFrame.new(randomSpawn.Position + Vector3.new(0, 3, 0))
+        return randomSpawn
     end
 
     return nil
-end
-
--- Fonction pour désactiver les collisions du personnage
-local function setCollisions(enabled)
-    for _, part in ipairs(character:GetChildren()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = enabled
-        end
-    end
 end
 
 -- Fonction pour obtenir la pièce la plus proche
