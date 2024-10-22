@@ -113,20 +113,10 @@ local function getNearestCoin()
     local nearestCoin = nil
     local shortestDistance = math.huge  -- Initialiser avec une valeur très grande
 
-    -- Chercher "Normal" partout dans l'arborescence du Workspace
-    local normal = nil
+    -- Cherche "CoinContainer" partout dans l'arborescence du Workspace
     for _, obj in ipairs(game.Workspace:GetDescendants()) do
-        if obj.Name == "Normal" then
-            normal = obj
-            break  -- Sortir de la boucle dès qu'on trouve "Normal"
-        end
-    end
-
-    -- Vérifier si "Normal" a été trouvé
-    if normal then
-        local coinContainer = normal:FindFirstChild("CoinContainer")
-        if coinContainer then
-            for _, coin in ipairs(coinContainer:GetDescendants()) do
+        if obj.Name == "CoinContainer" then
+            for _, coin in ipairs(obj:GetDescendants()) do
                 if coin:IsA("MeshPart") then
                     local distance = (coin.Position - humanoidRootPart.Position).Magnitude
 
@@ -138,6 +128,15 @@ local function getNearestCoin()
             end
         end
     end
+
+    if nearestCoin then
+        print("Pièce la plus proche trouvée : " .. nearestCoin.Name)
+    else
+        print("Aucune pièce trouvée.")
+    end
+
+    return nearestCoin
+end
 
     if nearestCoin then
         print("Pièce la plus proche trouvée : " .. nearestCoin.Name)
