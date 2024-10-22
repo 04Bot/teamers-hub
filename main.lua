@@ -108,6 +108,9 @@ local function moveFrame(innerFrame, targetPosition)
 	tween:Play()  -- Joue l'animation
 end
 
+local delayBetweenActions = 0.5  -- Délai de 0.5 seconde après avoir collecté la pièce
+local lobbyStayDuration = 1  -- Temps de séjour dans le lobby avant de reprendre la chasse aux pièces
+
 -- Fonction pour téléporter le joueur vers une pièce
 local function teleportToCoin(coin)
     if coin and humanoidRootPart then
@@ -199,12 +202,16 @@ local function startCoinHunt()
             wait(0.1)
 
             if currentCoin and currentCoin:IsDescendantOf(game.Workspace) then
-                teleportToCoin(currentCoin)  -- Assurez-vous que cela fonctionne maintenant
+                teleportToCoin(currentCoin)  -- Téléporte le joueur vers la pièce
 
-                if (currentCoin.Position - humanoidRootPart.Position).Magnitude <= 5 then  -- Vérifie si le joueur est proche de la pièce
+                -- Attendre 0.5 seconde après la téléportation à la pièce
+                wait(delayBetweenActions)
+
+                if (currentCoin.Position - humanoidRootPart.Position).Magnitude <= 5 then
                     print("Pièce collectée : " .. currentCoin.Name)
-                    currentCoin:Destroy()
+                    currentCoin:Destroy()  -- Simuler la collecte de la pièce
 
+                    -- Téléportation au lobby
                     local randomSpawn = getRandomSpawn()
                     if randomSpawn then
                         humanoidRootPart.Position = randomSpawn.Position + Vector3.new(0, 3, 0)
@@ -212,6 +219,10 @@ local function startCoinHunt()
                         print("Aucun spawn valide trouvé dans le lobby.")
                     end
 
+                    -- Attendre 1 seconde dans le lobby avant de reprendre
+                    wait(lobbyStayDuration)
+
+                    -- Sélectionner la prochaine pièce
                     if active_RandomCoin then
                         currentCoin = getRandomCoin()
                     else
@@ -219,6 +230,7 @@ local function startCoinHunt()
                     end
                 end
             else
+                -- Si la pièce est détruite ou n'existe plus, rechercher une nouvelle pièce
                 if active_RandomCoin then
                     currentCoin = getRandomCoin()
                 else
