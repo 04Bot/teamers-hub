@@ -123,7 +123,6 @@ local function teleportToCoin(coin)
     end
 end
 
--- Correction similaire pour la téléportation au spawn aléatoire
 local function getRandomSpawn()
     local spawns = game.Workspace.Lobby.Spawns:GetChildren()
     local validSpawns = {}
@@ -136,8 +135,11 @@ local function getRandomSpawn()
 
     if #validSpawns > 0 then
         local randomSpawn = validSpawns[math.random(1, #validSpawns)]
-        -- Remplacer ici aussi la Position par CFrame pour éviter un cumul vertical :
-        humanoidRootPart.CFrame = CFrame.new(randomSpawn.Position + Vector3.new(0, 3, 0))
+        humanoidRootPart.CFrame = CFrame.new(randomSpawn.Position)  -- Téléportation directe sans ajustement de hauteur
+        local humanoid = character:FindFirstChild("Humanoid")
+        if humanoid then
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)  -- Faire sauter le joueur après la téléportation
+        end
         return randomSpawn
     end
 
@@ -191,7 +193,6 @@ local function getRandomCoin()
     return nil
 end
 
--- Fonction principale pour la chasse aux pièces
 local function startCoinHunt()
     if active then
         local currentCoin
@@ -209,23 +210,20 @@ local function startCoinHunt()
 
             if currentCoin and currentCoin:IsDescendantOf(game.Workspace) then
                 teleportToCoin(currentCoin)  -- Téléporte le joueur vers la pièce
-
-                -- Attendre 0.5 seconde après la téléportation à la pièce
-                wait(delayBetweenActions)
+                wait(0.5)  -- Attendre après la téléportation
 
                 if (currentCoin.Position - humanoidRootPart.Position).Magnitude <= 5 then
                     print("Pièce collectée : " .. currentCoin.Name)
-                    currentCoin:Destroy()  -- Simuler la collecte de la pièce
 
                     -- Téléportation au lobby
                     local randomSpawn = getRandomSpawn()
                     if randomSpawn then
-                        humanoidRootPart.Position = randomSpawn.Position + Vector3.new(0, 3, 0)
+                        humanoidRootPart.CFrame = CFrame.new(randomSpawn.Position)  -- Téléportation au spawn
                     else
                         print("Aucun spawn valide trouvé dans le lobby.")
                     end
 
-                    -- Attendre 1 seconde dans le lobby avant de reprendre
+                    -- Attendre dans le lobby avant de reprendre la chasse
                     wait(lobbyStayDuration)
 
                     -- Sélectionner la prochaine pièce
