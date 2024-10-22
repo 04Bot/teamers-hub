@@ -232,18 +232,21 @@ local function startCoinHunt()
             currentCoin = getNearestCoin()  -- Sélectionne la pièce la plus proche
         end
 
+        -- Désactiver la gravité pendant la collecte
+        humanoidRootPart.Anchored = true
+
         while active do
             wait(0.1)  -- Petite pause pour limiter les vérifications
 
             -- Vérifie si la pièce actuelle existe encore
-            if currentCoin then
+            if currentCoin and currentCoin:IsDescendantOf(game.Workspace) then
                 moveToCoin(currentCoin)  -- Déplace le joueur vers la pièce actuelle
 
                 -- Vérifie si le joueur est suffisamment proche de la pièce
                 if isNearCoin(currentCoin) then
                     print("Pièce collectée : " .. currentCoin.Name)  -- Imprime le nom de la pièce collectée
 
-                    -- Détruire la pièce pour simuler la collecte (à adapter selon le jeu)
+                    -- Détruire la pièce pour simuler la collecte
                     currentCoin:Destroy()  -- Assure-toi que la pièce soit détruite dans le jeu
 
                     -- Sélectionne une nouvelle pièce après la collecte
@@ -254,8 +257,8 @@ local function startCoinHunt()
                     end
                 end
             else
-                print("Aucune pièce actuelle. Recherche d'une nouvelle pièce.")
-                -- Si currentCoin est nil, recherche une nouvelle pièce
+                print("Aucune pièce actuelle ou pièce détruite. Recherche d'une nouvelle pièce.")
+                -- Si currentCoin est nil ou n'est plus valide, recherche une nouvelle pièce
                 if active_RandomCoin then
                     currentCoin = getRandomCoin()  -- Recherche une nouvelle pièce aléatoire
                 else
@@ -263,6 +266,9 @@ local function startCoinHunt()
                 end
             end
         end
+
+        -- Réactiver la gravité après la collecte
+        humanoidRootPart.Anchored = false
     end
 end
 
