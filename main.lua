@@ -222,27 +222,40 @@ end
 
 -- Fonction principale pour la chasse aux pièces
 local function startCoinHunt()
-    -- Si on est dans la boucle active
     if active then
         local currentCoin
+
+        -- Choisit la pièce initiale en fonction de l'état de RandomCoin
         if active_RandomCoin then
-            currentCoin = getRandomCoin()  -- Sélectionne une pièce aléatoire si RandomCoin est activé
+            currentCoin = getRandomCoin()  -- Sélectionne une pièce aléatoire
         else
             currentCoin = getNearestCoin()  -- Sélectionne la pièce la plus proche
         end
 
-        while active and currentCoin do
+        while active do
             wait(0.1)  -- Petite pause pour limiter les vérifications
 
-            -- Déplace le joueur vers la pièce
-            moveToCoin(currentCoin)
+            -- Vérifie si la pièce actuelle existe encore avant d'essayer de s'y déplacer
+            if currentCoin then
+                moveToCoin(currentCoin)  -- Déplace le joueur vers la pièce actuelle
 
-            -- Vérifie si le joueur est suffisamment proche de la pièce
-            if isNearCoin(currentCoin) then
+                -- Vérifie si le joueur est suffisamment proche de la pièce
+                if isNearCoin(currentCoin) then
+                    print("Pièce collectée : " .. currentCoin.Name)  -- Imprime le nom de la pièce collectée
+
+                    -- Choisit une nouvelle pièce selon le mode actif
+                    if active_RandomCoin then
+                        currentCoin = getRandomCoin()  -- Sélectionne une nouvelle pièce aléatoire
+                    else
+                        currentCoin = getNearestCoin()  -- Sélectionne la nouvelle pièce la plus proche
+                    end
+                end
+            else
+                print("Aucune pièce actuelle. Recherche d'une nouvelle pièce.")
                 if active_RandomCoin then
-                    currentCoin = getRandomCoin()  -- Sélectionne une nouvelle pièce aléatoire
+                    currentCoin = getRandomCoin()  -- Recherche une nouvelle pièce aléatoire
                 else
-                    currentCoin = getNearestCoin()  -- Sélectionne la nouvelle pièce la plus proche
+                    currentCoin = getNearestCoin()  -- Recherche la pièce la plus proche
                 end
             end
         end
