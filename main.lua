@@ -108,70 +108,12 @@ local function moveFrame(innerFrame, targetPosition)
 	tween:Play()  -- Joue l'animation
 end
 
--- Fonction pour désactiver les collisions du personnage
-local function setCollisions(enabled)
-    local character = humanoidRootPart.Parent  -- Obtenir le personnage du HumanoidRootPart
-    for _, part in ipairs(character:GetChildren()) do
-        if part:IsA("BasePart") then
-            part.CanCollide = enabled  -- Activer ou désactiver les collisions
-        end
-    end
-end
-
--- Fonction pour obtenir la pièce la plus proche
-local function getNearestCoin()
-    local nearestCoin = nil
-    local shortestDistance = math.huge  -- Initialiser avec une valeur très grande
-
-    -- Cherche "CoinContainer" partout dans l'arborescence du Workspace
-    for _, obj in ipairs(game.Workspace:GetDescendants()) do
-        if obj.Name == "CoinContainer" then
-            for _, coin in ipairs(obj:GetDescendants()) do
-                if coin:IsA("MeshPart") then
-                    local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-
-                    if distance < shortestDistance then
-                        shortestDistance = distance
-                        nearestCoin = coin
-                    end
-                end
-            end
-        end
-    end
-
-    if nearestCoin then
-        print("Pièce la plus proche trouvée : " .. nearestCoin.Name)
-    else
-        print("Aucune pièce trouvée.")
-    end
-
-    return nearestCoin
-end
-
--- Fonction pour obtenir une pièce aléatoire dans le Workspace
-local function getRandomCoin()
-    local coins = {}
-
-    -- Parcourt tous les objets dans le Workspace pour trouver ceux qui sont des pièces
-    for _, coin in ipairs(game.Workspace:FindFirstChild("CoinContainer"):GetDescendants()) do
-        if coin:IsA("MeshPart") then
-            table.insert(coins, coin)  -- Ajoute la pièce dans la table
-        end
-    end
-
-    -- Si des pièces sont trouvées, retourne une pièce aléatoire
-    if #coins > 0 then
-        return coins[math.random(1, #coins)]  -- Sélectionne et retourne une pièce aléatoire
-    end
-
-    -- Si aucune pièce n'est trouvée, retourne nil
-    return nil
-end
-
 -- Fonction pour téléporter le joueur vers une pièce
 local function teleportToCoin(coin)
     if coin and humanoidRootPart then
         humanoidRootPart.Position = coin.Position + Vector3.new(0, 3, 0)  -- Ajuste la hauteur
+    else
+        print("Erreur : coin ou humanoidRootPart est nil.")
     end
 end
 
@@ -188,6 +130,53 @@ local function getRandomSpawn()
 
     if #validSpawns > 0 then
         return validSpawns[math.random(1, #validSpawns)]
+    end
+
+    return nil
+end
+
+-- Fonction pour désactiver les collisions du personnage
+local function setCollisions(enabled)
+    for _, part in ipairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = enabled
+        end
+    end
+end
+
+-- Fonction pour obtenir la pièce la plus proche
+local function getNearestCoin()
+    local nearestCoin = nil
+    local shortestDistance = math.huge
+
+    for _, obj in ipairs(game.Workspace:GetDescendants()) do
+        if obj.Name == "CoinContainer" then
+            for _, coin in ipairs(obj:GetDescendants()) do
+                if coin:IsA("MeshPart") then
+                    local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+                    if distance < shortestDistance then
+                        shortestDistance = distance
+                        nearestCoin = coin
+                    end
+                end
+            end
+        end
+    end
+
+    return nearestCoin
+end
+
+-- Fonction pour obtenir une pièce aléatoire
+local function getRandomCoin()
+    local coins = {}
+    for _, coin in ipairs(game.Workspace:FindFirstChild("CoinContainer"):GetDescendants()) do
+        if coin:IsA("MeshPart") then
+            table.insert(coins, coin)
+        end
+    end
+
+    if #coins > 0 then
+        return coins[math.random(1, #coins)]
     end
 
     return nil
@@ -212,7 +201,7 @@ local function startCoinHunt()
             if currentCoin and currentCoin:IsDescendantOf(game.Workspace) then
                 teleportToCoin(currentCoin)  -- Assurez-vous que cela fonctionne maintenant
 
-                if isNearCoin(currentCoin) then
+                if (currentCoin.Position - humanoidRootPart.Position).Magnitude <= 5 then  -- Vérifie si le joueur est proche de la pièce
                     print("Pièce collectée : " .. currentCoin.Name)
                     currentCoin:Destroy()
 
