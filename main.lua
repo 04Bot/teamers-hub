@@ -200,27 +200,29 @@ end
 
 local isHuntRunning = false  -- Variable pour indiquer si la chasse aux pièces est en cours
 
--- Fonction principale pour la chasse aux pièces
+-- Fonction principale pour la collecte automatique de pièces
 local function startCoinHunt()
-	if not active or isHuntRunning then return end  -- Ne démarre pas si déjà en cours ou non actif
-	isHuntRunning = true  -- Marquer la chasse comme active
+    if not active then return end
 
-	local currentCoin = getNearestCoin()  -- Sélectionne la pièce la plus proche
+    local currentCoin = getNearestCoin()
 
-	while active do
-		wait(0.1)  -- Petite pause pour limiter les vérifications
+    while active do
+        wait(0.1)  -- Petite pause pour limiter les vérifications
 
-		-- Déplace le joueur vers la pièce ou téléporte s'il est trop loin
-		moveToCoin(currentCoin)
+        -- Vérifie si la pièce actuelle est toujours valide
+        if currentCoin and isNearCoin(currentCoin) then
+            -- Déplace le joueur à la position de la pièce sans tween
+            humanoidRootPart.Position = currentCoin.Position + Vector3.new(0, 3, 0)  -- Position légèrement au-dessus de la pièce
 
-		-- Vérifie si le joueur est suffisamment proche de la pièce ou de sa dernière position
-		if isNearCoin(currentCoin) then
-			-- Si le joueur est arrivé, sélectionne une nouvelle pièce
-			currentCoin = getNearestCoin()
-		end
-	end
-
-	isHuntRunning = false  -- Marquer la chasse comme inactive à la fin
+            -- Choisit une nouvelle pièce après avoir atteint la pièce actuelle
+            currentCoin = getNearestCoin()
+        else
+            -- Se déplacer directement vers la pièce si pas assez proche
+            if currentCoin then
+                humanoidRootPart.Position = currentCoin.Position + Vector3.new(0, 3, 0)  -- Déplace vers la pièce
+            end
+        end
+    end
 end
 
 -- Gestion des respawns
