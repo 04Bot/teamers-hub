@@ -129,12 +129,7 @@ local function getNearestCoin()
             end
         end
     end
-
-    -- Si le joueur est proche du coin (distance <= 1), rechercher un nouveau coin
-    if nearestCoin and (nearestCoin.Position - humanoidRootPart.Position).Magnitude <= 1 then
-        nearestCoin = getNearestCoin()  -- Appelle récursivement la fonction pour trouver un nouveau coin
-    end
-
+	
     return nearestCoin
 end
 
@@ -194,16 +189,11 @@ local function moveToCoin(coin)
 	end
 end
 
--- Fonction pour vérifier si le joueur est proche de la pièce
+-- Fonction pour vérifier si le joueur est assez proche de la pièce
 local function isNearCoin(coin)
 	if coin and humanoidRootPart then
 		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-		lastCoinPosition = coin.Position  -- Mémoriser la position de la pièce
-		return distance <= 1  -- Considérer comme "arrivé" si à 1 unité ou moins
-	elseif lastCoinPosition then
-		-- Si la pièce est détruite, vérifie la position sauvegardée avec une marge de 1 unité
-		local distance = (lastCoinPosition - humanoidRootPart.Position).Magnitude
-		return distance <= 1  -- Considérer comme "arrivé" si à 1 unité ou moins
+		return distance <= detectionRadius  -- Retourne vrai si la distance est inférieure ou égale au rayon de détection
 	end
 	return false
 end
