@@ -113,20 +113,24 @@ end
 -- Fonction pour obtenir la pièce la plus proche
 local function getNearestCoin()
     local nearestCoin = nil
-    local shortestDistance = math.huge
+    local shortestDistance = math.huge  -- Set to infinity initially
 
-    for _, obj in ipairs(game.Workspace:GetDescendants()) do
-        if obj.Name == "CoinContainer" then
-            for _, coin in ipairs(obj:GetDescendants()) do
-                if coin:IsA("MeshPart") then
-                    local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-                    if distance < shortestDistance then
-                        shortestDistance = distance
-                        nearestCoin = coin
-                    end
-                end
+    -- Loop through all objects in the CoinContainer
+    for _, coin in ipairs(game.Workspace:FindFirstChild("Normal"):FindFirstChild("CoinContainer"):GetDescendants()) do
+        if coin:IsA("MeshPart") then
+            local distance = (coin.Position - humanoidRootPart.Position).Magnitude  -- Calculate distance to the player
+
+            -- Check if this coin is the closest one found so far
+            if distance < shortestDistance then
+                shortestDistance = distance
+                nearestCoin = coin
             end
         end
+    end
+
+    -- If the nearest coin is within 1 unit distance, search for another coin
+    if nearestCoin and (nearestCoin.Position - humanoidRootPart.Position).Magnitude <= 1 then
+        nearestCoin = getNearestCoin()  -- Search for another coin
     end
 
     return nearestCoin
