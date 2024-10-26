@@ -110,19 +110,6 @@ local function moveFrame(innerFrame, targetPosition)
 	tween:Play()  -- Joue l'animation
 end
 
--- Fonction pour désactiver les collisions du personnage
-local function setCollisions(enabled)
-    for _, part in ipairs(game.Workspace:GetChildren()) do
-	if part.Name == game.Players.LocalPlayer.Name then
-	    for _, chr in ipairs(part:GetChildren()) do
-	       if chr:IsA("BasePart") then
-            	    chr.CanCollide = enabled
-	        end
-            end
-	end
-    end
-end
-
 -- Fonction pour obtenir la pièce la plus proche
 local function getNearestCoin()
     local nearestCoin = nil
@@ -176,21 +163,6 @@ end
 
 local lastCoinPosition  -- Variable pour stocker la dernière position d'une pièce
 
--- Fonction pour vérifier si le joueur est proche de la pièce
-local function isNearCoin(coin)
-	if coin and humanoidRootPart then
-		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-		-- Sauvegarde la position de la pièce pour référence future
-		lastCoinPosition = coin.Position
-		return distance <= detectionRadius  -- Retourne vrai si la distance est inférieure ou égale au rayon de détection
-	elseif lastCoinPosition then
-		-- Si la pièce est détruite, vérifie la position sauvegardée
-		local distance = (lastCoinPosition - humanoidRootPart.Position).Magnitude
-		return distance <= detectionRadius
-	end
-	return false
-end
-
 -- Fonction pour déplacer le joueur vers une pièce à une vitesse constante ou téléporter si trop loin
 local function moveToCoin(coin)
 	if coin and humanoidRootPart then
@@ -201,12 +173,11 @@ local function moveToCoin(coin)
 		if distance > teleportDistance then
 			teleportToCoin(coin)
 		else
-			-- Désactiver les collisions avant de commencer le tween
-			humanoidRootPart.CanCollide = false
+			-- Maintenir les collisions activées
 
 			-- Calculer la durée du déplacement en fonction de la distance et de la vitesse
 			local duration = distance / speed
-			local targetPosition = CFrame.new(coin.Position.X, coin.Position.Y - offsetBelowCoin, coin.Position.Z)
+			local targetPosition = CFrame.new(coin.Position)  -- Aller directement sur la position de la pièce
 
 			-- Crée un tween pour déplacer le HumanoidRootPart
 			local tween = TweenService:Create(humanoidRootPart, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {CFrame = targetPosition})
@@ -217,25 +188,43 @@ local function moveToCoin(coin)
 	end
 end
 
+-- Fonction pour vérifier si le joueur est proche de la pièce
+local function isNearCoin(coin)
+	if coin and humanoidRootPart then
+		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+		lastCoinPosition = coin.Position  -- Mémoriser la position de la pièce
+		return distance <= 1  -- Considérer comme "arrivé" si à 1 unité ou moins
+	elseif lastCoinPosition then
+		-- Si la pièce est détruite, vérifie la position sauvegardée avec une marge de 1 unité
+		local distance = (lastCoinPosition - humanoidRootPart.Position).Magnitude
+		return distance <= 1  -- Considérer comme "arrivé" si à 1 unité ou moins
+	end
+	return false
+end
+
+local isHuntRunning = false  -- Variable pour indiquer si la chasse aux pièces est en cours
+
 -- Fonction principale pour la chasse aux pièces
 local function startCoinHunt()
-	-- Si on est dans la boucle active
-	if active then
-		local currentCoin = getNearestCoin()  -- Sélectionne une pièce aléatoire
+	if not active or isHuntRunning then return end  -- Ne démarre pas si déjà en cours ou non actif
+	isHuntRunning = true  -- Marquer la chasse comme active
 
-		while active do
-			wait(0.1)  -- Petite pause pour limiter les vérifications
+	local currentCoin = getNearestCoin()  -- Sélectionne la pièce la plus proche
 
-			-- Déplace le joueur vers la pièce ou téléporte s'il est trop loin
-			moveToCoin(currentCoin)
+	while active do
+		wait(0.1)  -- Petite pause pour limiter les vérifications
 
-			-- Vérifie si le joueur est suffisamment proche de la pièce ou de sa dernière position
-			if isNearCoin(currentCoin) then
-				-- Sélectionne une nouvelle pièce
-				currentCoin = getNearestCoin()
-			end
+		-- Déplace le joueur vers la pièce ou téléporte s'il est trop loin
+		moveToCoin(currentCoin)
+
+		-- Vérifie si le joueur est suffisamment proche de la pièce ou de sa dernière position
+		if isNearCoin(currentCoin) then
+			-- Si le joueur est arrivé, sélectionne une nouvelle pièce
+			currentCoin = getNearestCoin()
 		end
 	end
+
+	isHuntRunning = false  -- Marquer la chasse comme inactive à la fin
 end
 
 -- Gestion des respawns
@@ -243,8 +232,9 @@ player.CharacterAdded:Connect(function(newCharacter)
     character = newCharacter
     humanoidRootPart = character:WaitForChild("HumanoidRootPart")
 
-    if active then
-        startCoinHunt()  -- Relancer le farm après respawn
+    -- Ne démarre la chasse que si elle est active et pas déjà en cours
+    if active and not isHuntRunning then
+        startCoinHunt()
     end
 end)
 
