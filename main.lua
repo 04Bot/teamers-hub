@@ -166,27 +166,36 @@ local lastCoinPosition  -- Variable pour stocker la dernière position d'une pi�
 
 -- Fonction pour déplacer le joueur vers une pièce à une vitesse constante ou téléporter si trop loin
 local function moveToCoin(coin)
-	if coin and humanoidRootPart then
-		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-		lastCoinPosition = coin.Position  -- Sauvegarde la position de la pièce
+    if coin and humanoidRootPart then
+        local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+        lastCoinPosition = coin.Position  -- Sauvegarde la position de la pièce
 
-		-- Si la distance est supérieure à 1000 unités, téléportation
-		if distance > teleportDistance then
-			teleportToCoin(coin)
-		else
-			-- Maintenir les collisions activées
+        -- Si la distance est supérieure à 1000 unités, téléportation
+        if distance > teleportDistance then
+            teleportToCoin(coin)
+        else
+            -- Maintenir les collisions activées
 
-			-- Calculer la durée du déplacement en fonction de la distance et de la vitesse
-			local duration = distance / speed
-			local targetPosition = CFrame.new(coin.Position)  -- Aller directement sur la position de la pièce
+            -- Calculer la durée du déplacement en fonction de la distance et de la vitesse
+            local duration = distance / speed
+            local targetPosition = CFrame.new(coin.Position.X, humanoidRootPart.Position.Y, coin.Position.Z)  -- Limite la hauteur à celle du joueur
 
-			-- Crée un tween pour déplacer le HumanoidRootPart
-			local tween = TweenService:Create(humanoidRootPart, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {CFrame = targetPosition})
-			tween:Play()
-		end
-	else
-		lastCoinPosition = nil  -- Réinitialiser si aucune pièce n'est trouvée
-	end
+            -- Crée un tween pour déplacer le HumanoidRootPart
+            local tween = TweenService:Create(humanoidRootPart, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {CFrame = targetPosition})
+            tween:Play()
+
+            -- Attendre que le tween soit terminé
+            tween.Completed:Wait()
+
+            -- Après le déplacement, chercher une nouvelle pièce
+            local newCoin = getNearestCoin()
+            if newCoin then
+                moveToCoin(newCoin)  -- Appeler récursivement pour se déplacer vers la nouvelle pièce
+            end
+        end
+    else
+        lastCoinPosition = nil  -- Réinitialiser si aucune pièce n'est trouvée
+    end
 end
 
 -- Fonction pour vérifier si le joueur est assez proche de la pièce
