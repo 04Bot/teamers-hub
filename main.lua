@@ -174,10 +174,28 @@ local function teleportToCoin(coin)
 	humanoidRootPart.CanCollide = true
 end
 
+local lastCoinPosition  -- Variable pour stocker la dernière position d'une pièce
+
+-- Fonction pour vérifier si le joueur est proche de la pièce
+local function isNearCoin(coin)
+	if coin and humanoidRootPart then
+		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+		-- Sauvegarde la position de la pièce pour référence future
+		lastCoinPosition = coin.Position
+		return distance <= detectionRadius  -- Retourne vrai si la distance est inférieure ou égale au rayon de détection
+	elseif lastCoinPosition then
+		-- Si la pièce est détruite, vérifie la position sauvegardée
+		local distance = (lastCoinPosition - humanoidRootPart.Position).Magnitude
+		return distance <= detectionRadius
+	end
+	return false
+end
+
 -- Fonction pour déplacer le joueur vers une pièce à une vitesse constante ou téléporter si trop loin
 local function moveToCoin(coin)
 	if coin and humanoidRootPart then
 		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
+		lastCoinPosition = coin.Position  -- Sauvegarde la position de la pièce
 
 		-- Si la distance est supérieure à 1000 unités, téléportation
 		if distance > teleportDistance then
@@ -194,16 +212,9 @@ local function moveToCoin(coin)
 			local tween = TweenService:Create(humanoidRootPart, TweenInfo.new(duration, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {CFrame = targetPosition})
 			tween:Play()
 		end
+	else
+		lastCoinPosition = nil  -- Réinitialiser si aucune pièce n'est trouvée
 	end
-end
-
--- Fonction pour vérifier si le joueur est assez proche de la pièce
-local function isNearCoin(coin)
-	if coin and humanoidRootPart then
-		local distance = (coin.Position - humanoidRootPart.Position).Magnitude
-		return distance <= detectionRadius  -- Retourne vrai si la distance est inférieure ou égale au rayon de détection
-	end
-	return false
 end
 
 -- Fonction principale pour la chasse aux pièces
@@ -212,13 +223,13 @@ local function startCoinHunt()
 	if active then
 		local currentCoin = getNearestCoin()  -- Sélectionne une pièce aléatoire
 
-		while active and currentCoin do
+		while active do
 			wait(0.1)  -- Petite pause pour limiter les vérifications
 
 			-- Déplace le joueur vers la pièce ou téléporte s'il est trop loin
 			moveToCoin(currentCoin)
 
-			-- Vérifie si le joueur est suffisamment proche de la pièce
+			-- Vérifie si le joueur est suffisamment proche de la pièce ou de sa dernière position
 			if isNearCoin(currentCoin) then
 				-- Sélectionne une nouvelle pièce
 				currentCoin = getNearestCoin()
