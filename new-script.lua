@@ -61,11 +61,17 @@ local active_AutoFarm = false
 local farmConnection
 local TweenService = game:GetService("TweenService")
 
+-- Vérification si TweenService est bien chargé
+if not TweenService then
+    warn("TweenService n'a pas pu être chargé.")
+    return
+end
+
 -- Fonction pour créer et jouer un tween pour déplacer le Frame interne
 local function moveFrame(innerFrame, targetPosition)
-	local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)  -- Durée de 0.1 seconde avec un easing smooth
-	local tween = TweenService:Create(innerFrame, tweenInfo, {Position = targetPosition})  -- Crée le tween pour changer la position
-	tween:Play()  -- Joue l'animation
+    local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)  -- Durée de 0.1 seconde avec un easing smooth
+    local tween = TweenService:Create(innerFrame, tweenInfo, {Position = targetPosition})  -- Crée le tween pour changer la position
+    tween:Play()  -- Joue l'animation
 end
 
 local function findNearestCoin()
