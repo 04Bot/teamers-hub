@@ -95,11 +95,18 @@ local function findNearestCoin()
     return closestCoin
 end
 
+-- Fonction pour déplacer le joueur avec un tween vers la pièce la plus proche
 local function moveToCoin()
     local coin = findNearestCoin()
     if coin then
-        humanoid:MoveTo(coin.Position)  -- Déplace le joueur vers la pièce
-        humanoid.MoveToFinished:Wait()  -- Attendre que le joueur arrive à la pièce avant de passer à la suivante
+        -- Crée un tween pour déplacer le HumanoidRootPart vers la position de la pièce
+        local tweenInfo = TweenInfo.new(0.5, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)  -- Durée de 0.5 seconde
+        local tweenGoal = {Position = coin.Position}
+
+        local tween = TweenService:Create(rootPart, tweenInfo, tweenGoal)
+        tween:Play()
+
+        tween.Completed:Wait()  -- Attend la fin du tween avant de passer à la pièce suivante
     end
 end
 
