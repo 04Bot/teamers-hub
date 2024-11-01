@@ -62,9 +62,10 @@ local humanoid = character:WaitForChild("Humanoid")
 local active_AutoFarm = false
 local TweenService = game:GetService("TweenService")
 
+-- Fonction pour activer le noclip
 local function setNoClip(state)
-    for _, part in ipairs(character:GetChildren()) do
-        if part:IsA("BasePart") then
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA("BasePart") or part:IsA("MeshPart") then
             part.CanCollide = false  -- Active/désactive la collision
         end
     end
@@ -102,26 +103,40 @@ local function findNearestCoin()
     return closestCoin, closestDistance
 end
 
--- Fonction pour déplacer le joueur vers la pièce la plus proche
 local function moveToCoin()
     local coin, distance = findNearestCoin()
     if coin then
-        -- Calcul de la durée du tween en fonction de la distance et de la vitesse
-        local duration = distance / speed
-        
-        -- Tween pour le HumanoidRootPart
-        local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-        local rootTweenGoal = CFrame.new(coin.Position.X, coin.Position.Y, coin.Position.Z)
+        if distance <= 3 then
+            return  -- Le joueur est assez proche, rien à faire
+        elseif distance > 300 then
+            -- Téléportation douce
+            rootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
+        else
+            -- Utiliser un tween pour se déplacer vers le coin
+            local duration = distance / speed
+            local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+            local rootTweenGoal = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
 
-        local rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
-        rootTween:Play()
-        rootTween.Completed:Wait()  -- Attendre que le tween soit terminé
+            local rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
+            rootTween:Play()
+            rootTween.Completed:Wait()
+        end
     end
 end
 
 -- Fonction pour démarrer l'AutoFarm sans duplications
 local function startAutoFarm()
+	local bodyPosition = Instance.new("BodyPosition")
+    bodyPosition.P = 0 -- Set the power to 0 to prevent the player from falling
+    bodyPosition.D = 0 -- Set the dampening to 0 to prevent the player from moving in the Y or Z direction
+    bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge) -- Set the maximum force to prevent the player from moving in the Y or Z direction
+
+    bodyPosition.Parent = character.HumanoidRootPart
     if not active_AutoFarm then
+		-- Vérifier que le personnage est initialisé
+		if character then
+			setNoClip(true)  -- Active le noclip au début
+		end
         active_AutoFarm = true
         setNoClip(true)  -- Active le noclip
         farmConnection = game:GetService("RunService").Heartbeat:Connect(function()
@@ -148,14 +163,14 @@ AutoFarm.MouseButton1Click:Connect(function()
     local innerFrame = outerFrame:FindFirstChild("Frame")
 
     if active_AutoFarm then
-stopAutoFarm()
+		stopAutoFarm()
         -- Si déjà actif, désactiver et arrêter la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
         innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
         active_AutoFarm = false
     else
-startAutoFarm()
+		startAutoFarm()
         -- Si désactivé, l'activer et commencer la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
