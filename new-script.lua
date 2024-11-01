@@ -59,6 +59,7 @@ local humanoid = character:WaitForChild("Humanoid")
 
 local active_AutoFarm = false
 local farmConnection
+local TweenService = game:GetService("TweenService")
 
 -- Fonction pour créer et jouer un tween pour déplacer le Frame interne
 local function moveFrame(innerFrame, targetPosition)
