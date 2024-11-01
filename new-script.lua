@@ -1,3 +1,5 @@
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/s-o-a-b/nexus/main/loadstring"))()
+--loadstring(game:HttpGet('https://raw.githubusercontent.com/04Bot/teamers-hub/refs/heads/main/new-script.lua'))()
 local gui = Instance.new("ScreenGui")
 gui.Parent = game.CoreGui
 gui.ResetOnSpawn = false
@@ -60,15 +62,12 @@ local humanoid = character:WaitForChild("Humanoid")
 local active_AutoFarm = false
 local TweenService = game:GetService("TweenService")
 
--- Fonction pour activer le noclip
 local function setNoClip(state)
-    local humanoid = character:FindFirstChildOfClass("Humanoid")
-    if humanoid then
-        humanoid.PlatformStand = state  -- Utilise PlatformStand pour activer/désactiver le noclip
+    for _, part in ipairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            part.CanCollide = false  -- Active/désactive la collision
+        end
     end
-	for i, obj in character:GetDescendants() do
-		obj.CanCollide = state
-	end
 end
 
 -- Fonction pour créer et jouer un tween pour déplacer le Frame interne
@@ -149,14 +148,14 @@ AutoFarm.MouseButton1Click:Connect(function()
     local innerFrame = outerFrame:FindFirstChild("Frame")
 
     if active_AutoFarm then
-		stopAutoFarm()
+stopAutoFarm()
         -- Si déjà actif, désactiver et arrêter la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
         innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
         active_AutoFarm = false
     else
-		startAutoFarm()
+startAutoFarm()
         -- Si désactivé, l'activer et commencer la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
