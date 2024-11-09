@@ -127,7 +127,7 @@ local function moveToCoin()
             coinRemovedConnection:Disconnect()
             setNoClip(false)
             wait(0.1)
-			if coin and coin:IsDescendantOf(workspace) then
+	    if coin and coin:IsDescendantOf(workspace) then
                 coin:Destroy()
             end
             searchingForCoin = false
@@ -149,7 +149,7 @@ local function moveToCoin()
                 coinRemovedConnection:Disconnect()
                 setNoClip(false)
                 wait(0.1)
-				if coin and coin:IsDescendantOf(workspace) then
+		if coin and coin:IsDescendantOf(workspace) then
                     coin:Destroy()
                 end
                 searchingForCoin = false
@@ -183,14 +183,14 @@ AutoFarm.MouseButton1Click:Connect(function()
     local innerFrame = outerFrame:FindFirstChild("Frame")
 
     if active_AutoFarm then
-		active_AutoFarm = false
+	active_AutoFarm = false
         -- Si déjà actif, désactiver et arrêter la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
         innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
 		stopAutoFarm()
     else
-		active_AutoFarm = true
+	active_AutoFarm = true
         -- Si désactivé, l'activer et commencer la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
