@@ -217,7 +217,7 @@ rootPart = character:WaitForChild("HumanoidRootPart")
 local coinText = player.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
 
 coinText:GetPropertyChangedSignal("Text"):Connect(function()
-    if coinText == 40 then
+    if coinText.Text == 40 then
 	player.Humanoid.Health = 0
     end
 end)
