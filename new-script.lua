@@ -214,6 +214,14 @@ player.CharacterAdded:Connect(onCharacterAdded)
 character = player.Character or player.CharacterAdded:Wait()
 rootPart = character:WaitForChild("HumanoidRootPart")
 
+local coinText = player.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
+
+coinText:GetPropertyChangedSignal("Text"):Connect(function()
+    if coinText == 40 then
+	player:LoadCharacter()
+    end
+end)
+
 --[[if not bodyCreated then
                 --bodyCreated = true
                 local bodyPosition = Instance.new("BodyPosition")
