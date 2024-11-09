@@ -73,78 +73,6 @@ local function setNoClip(state)
 end
 
 -- Fonction pour créer et jouer un tween pour déplacer le Frame interne
-local function moveFrame(innerFrame, targlocal gui = Instance.new("ScreenGui")
-gui.Parent = game.CoreGui
-gui.ResetOnSpawn = false
-gui.AutoLocalize = false
-
-local main = Instance.new("Frame")
-main.BackgroundColor3 = Color3.new(0.137255, 0.137255, 0.137255)
-main.AnchorPoint = Vector2.new(0.5, 0.5)
-main.Position = UDim2.new(0.5, 0, 0.5, 0)
-main.Size = UDim2.new(0, 300, 0, 300)
-main.Parent = gui
-
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 19)
-UICorner.Parent = main
-
-local AutoFarm = Instance.new("TextButton")
-AutoFarm.Text = "Auto Farm"
-AutoFarm.TextXAlignment = Enum.TextXAlignment.Left
-AutoFarm.TextSize = 8
-AutoFarm.TextColor3 = Color3.new(1, 1, 1)
-AutoFarm.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
-AutoFarm.Position = UDim2.new(0.023, 0, 0.177, 0)
-AutoFarm.Size = UDim2.new(0, 287, 0, 40)
-AutoFarm.Parent = main
-
-local UICorner2 = Instance.new("UICorner")
-UICorner2.CornerRadius = UDim.new(0, 10)
-UICorner2.Parent = AutoFarm
-
-local on = Instance.new("Frame")
-on.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
-on.Position = UDim2.new(0.847, 0, 0.25, 0)
-on.Size = UDim2.new(0, 34, 0, 19)
-on.Parent = AutoFarm
-
-local UICorner_on = Instance.new("UICorner")
-UICorner_on.CornerRadius = UDim.new(0, 19)
-UICorner_on.Parent = on
-
-local UIStroke_on = Instance.new("UIStroke")
-UIStroke_on.Color = Color3.new(0.52549, 0.52549, 0.52549)
-UIStroke_on.Parent = on
-
-local frame_on = Instance.new("Frame")
-frame_on.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
-frame_on.Position = UDim2.new(0.05, 0, 0.079, 0)
-frame_on.Size = UDim2.new(0, 15, 0, 15)
-frame_on.Parent = on
-
-local UICorner_on_2 = Instance.new("UICorner")
-UICorner_on_2.CornerRadius = UDim.new(0, 50)
-UICorner_on_2.Parent = frame_on
-
-local player = game.Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
-local rootPart = character:WaitForChild("HumanoidRootPart")
-local humanoid = character:WaitForChild("Humanoid")
-
-local active_AutoFarm = false
-local TweenService = game:GetService("TweenService")
-
--- Fonction pour activer le noclip
-local function setNoClip(state)
-    for _, part in ipairs(character:GetDescendants()) do
-        if part:IsA("BasePart") or part:IsA("MeshPart") then
-            part.CanCollide = not state  -- Active/désactive la collision
-        end
-    end
-end
-
--- Fonction pour créer et jouer un tween pour déplacer le Frame interne
 local function moveFrame(innerFrame, targetPosition)
     local tweenInfo = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)  -- Durée de 0.1 seconde avec un easing smooth
     local tween = TweenService:Create(innerFrame, tweenInfo, {Position = targetPosition})  -- Crée le tween pour changer la position
@@ -256,19 +184,18 @@ AutoFarm.MouseButton1Click:Connect(function()
 
     if active_AutoFarm then
 		active_AutoFarm = false
-    	stopAutoFarm()
         -- Si déjà actif, désactiver et arrêter la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
         innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
-        active_AutoFarm = false
+		stopAutoFarm()
     else
 		active_AutoFarm = true
-		startAutoFarm()
         -- Si désactivé, l'activer et commencer la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
         moveFrame(innerFrame, UDim2.new(0.5, 0, 0.089, 0))  -- Nouvelle position
+		startAutoFarm()
     end
 end)
 
@@ -285,4 +212,13 @@ end
 -- Initialisation
 player.CharacterAdded:Connect(onCharacterAdded)
 character = player.Character or player.CharacterAdded:Wait()
-rootPart = character:WaitForChild("HumanoidRootPart")
+rootPart = character:WaitForChild("HumanoidRootPart")]]
+
+--[[if not bodyCreated then
+                --bodyCreated = true
+                local bodyPosition = Instance.new("BodyPosition")
+                bodyPosition.P = 0
+                bodyPosition.D = 0
+                bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+                bodyPosition.Parent = character.HumanoidRootPart
+            end]]
