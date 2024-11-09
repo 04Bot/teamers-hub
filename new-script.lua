@@ -218,7 +218,7 @@ local coinText = player.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.Currency
 
 coinText:GetPropertyChangedSignal("Text"):Connect(function()
     if coinText == 40 then
-	player:LoadCharacter()
+	player.Humanoid.Health = 0
     end
 end)
 
