@@ -1,6 +1,6 @@
 --loadstring(game:HttpGet("https://raw.githubusercontent.com/s-o-a-b/nexus/main/loadstring"))()
---loadstring(game:HttpGet("https://raw.githubusercontent.com/s-o-a-b/nexus/main/loadstring"))()
---loadstring(game:HttpGet('https://raw.githubusercontent.com/04Bot/teamers-hub/refs/heads/main/new-script.lua'))()
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/04Bot/teamers-hub/refs/heads/main/new-script.lua"))()
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/dqtixz/dark-dex/refs/heads/main/for%20solara%20v3", true))()
 local gui = Instance.new("ScreenGui")
 gui.Parent = game.CoreGui
 gui.ResetOnSpawn = false
@@ -103,10 +103,12 @@ local function findNearestCoin()
     return closestCoin, closestDistance
 end
 
-local function moveToCoin()
-    if not active_AutoFarm or searchingForCoin then return end
+local isFarming = false
 
-    searchingForCoin = true
+local function moveToCoin()
+    if not active_AutoFarm or isFarming then return end
+
+    isFarming = true  -- Définir le drapeau pour empêcher la réexécution
     local coin, distance = findNearestCoin()
 
     if coin then
@@ -118,8 +120,8 @@ local function moveToCoin()
                 coinRemovedConnection:Disconnect()
                 setNoClip(false)
                 wait(0.1)
-                searchingForCoin = false
-                moveToCoin()
+                isFarming = false  -- Réinitialiser le drapeau
+                moveToCoin()  -- Relancer la recherche de pièce
             end
         end)
 
@@ -127,20 +129,20 @@ local function moveToCoin()
             coinRemovedConnection:Disconnect()
             setNoClip(false)
             wait(0.1)
-	    if coin and coin:IsDescendantOf(workspace) then
+            if coin and coin:IsDescendantOf(workspace) then
                 coin:Destroy()
             end
-            searchingForCoin = false
+            isFarming = false
             moveToCoin()
         elseif distance > 300 then
             rootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
             coinRemovedConnection:Disconnect()
-            searchingForCoin = false
+            isFarming = false
             moveToCoin()
         else
             local duration = distance / speed
             local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-            local rootTweenGoal = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
+            local rootTweenGoal = CFrame.new(coin.Position.X, coin.Position.Y, coin.Position.Z)
 
             local rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
             rootTween:Play()
@@ -149,17 +151,14 @@ local function moveToCoin()
                 coinRemovedConnection:Disconnect()
                 setNoClip(false)
                 wait(0.1)
-		if coin and coin:IsDescendantOf(workspace) then
-                    coin:Destroy()
-                end
-                searchingForCoin = false
+                isFarming = false
                 moveToCoin()
             end)
         end
     else
         print("Aucune pièce trouvée.")
         setNoClip(false)
-        searchingForCoin = false
+        isFarming = false
         wait(1)
         moveToCoin()
     end
@@ -167,6 +166,12 @@ end
 
 -- Fonction pour démarrer l'auto-farm
 local function startAutoFarm()
+    local bodyPosition = Instance.new("BodyPosition")
+    bodyPosition.P = 0
+    bodyPosition.D = 0
+    bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+    bodyPosition.Parent = character.HumanoidRootPart
+	
     active_AutoFarm = true
     moveToCoin()  -- Lancer la chasse à la première pièce
 end
@@ -183,14 +188,14 @@ AutoFarm.MouseButton1Click:Connect(function()
     local innerFrame = outerFrame:FindFirstChild("Frame")
 
     if active_AutoFarm then
-	active_AutoFarm = false
+		active_AutoFarm = false
         -- Si déjà actif, désactiver et arrêter la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.227451, 0.227451, 0.227451)
         innerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         moveFrame(innerFrame, UDim2.new(0.05, 0, 0.089, 0))  -- Position initiale
 		stopAutoFarm()
     else
-	active_AutoFarm = true
+		active_AutoFarm = true
         -- Si désactivé, l'activer et commencer la chasse aux pièces
         outerFrame.BackgroundColor3 = Color3.new(0.52549, 0.52549, 0.52549)
         innerFrame.BackgroundColor3 = Color3.new(0, 0, 0)
@@ -199,13 +204,28 @@ AutoFarm.MouseButton1Click:Connect(function()
     end
 end)
 
+local function reset()
+	local coinText = player.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
+
+	coinText:GetPropertyChangedSignal("Text"):Connect(function()
+	print(coinText.Text)
+	if coinText.Text == "40" then
+		print("yh")
+		player.Character.Humanoid.Health = 0
+	end
+end)
+end
+
 -- Gestion des personnages
 local function onCharacterAdded(newCharacter)
     character = newCharacter
     rootPart = character:WaitForChild("HumanoidRootPart")
 
     if active_AutoFarm then
-        moveToCoin() -- Redémarre proprement si actif
+		stopAutoFarm()
+        wait(2)
+		startAutoFarm()
+		reset()
     end
 end
 
@@ -213,20 +233,3 @@ end
 player.CharacterAdded:Connect(onCharacterAdded)
 character = player.Character or player.CharacterAdded:Wait()
 rootPart = character:WaitForChild("HumanoidRootPart")
-
-local coinText = player.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
-
-coinText:GetPropertyChangedSignal("Text"):Connect(function()
-    if coinText.Text == 40 then
-	player.Humanoid.Health = 0
-    end
-end)
-
---[[if not bodyCreated then
-                --bodyCreated = true
-                local bodyPosition = Instance.new("BodyPosition")
-                bodyPosition.P = 0
-                bodyPosition.D = 0
-                bodyPosition.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
-                bodyPosition.Parent = character.HumanoidRootPart
-            end]]
