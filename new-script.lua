@@ -107,33 +107,37 @@ end
 local function moveToCoin()
     if not active_AutoFarm then return end
 
-    -- Trouver la pièce la plus proche
+    -- Chercher la pièce la plus proche
     local coin, distance = findNearestCoin()
 
     if coin then
         setNoClip(true)  -- Activer le noclip pour éviter les collisions
 
+        -- Connexion pour détecter la disparition de la pièce
         local coinRemovedConnection
         coinRemovedConnection = coin.AncestryChanged:Connect(function()
             if not coin:IsDescendantOf(workspace) then
-                -- La pièce a été collectée par un autre joueur ou supprimée
                 coinRemovedConnection:Disconnect()
                 setNoClip(false)
-                moveToCoin()  -- Chercher une autre pièce après la suppression de celle-ci
+                wait(0.1)  -- Petit délai pour éviter les appels trop fréquents
+                moveToCoin()  -- Chercher une nouvelle pièce après la disparition de celle-ci
             end
         end)
 
-        -- Si la pièce est à portée, on la détruit
+        -- Si la pièce est à portée, la détruire
         if distance <= 0.7 then
             coin:Destroy()
+            coinRemovedConnection:Disconnect()  -- Déconnecter l'événement pour éviter le lag
             setNoClip(false)
+            wait(0.1)  -- Petit délai pour éviter les appels trop fréquents
             moveToCoin()  -- Passer à la pièce suivante
         elseif distance > 300 then
-            -- Si la pièce est trop éloignée, téléportation immédiate
+            -- Téléportation directe si la pièce est trop éloignée
             rootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
+            coinRemovedConnection:Disconnect()
             moveToCoin()  -- Passer à la pièce suivante immédiatement
         else
-            -- Utilisation de Tween pour déplacer le joueur de manière fluide
+            -- Utilisation de Tween pour un déplacement fluide
             local duration = distance / speed
             local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
             local rootTweenGoal = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
@@ -142,17 +146,20 @@ local function moveToCoin()
             rootTween:Play()
 
             rootTween.Completed:Connect(function()
-                -- Détruire la pièce une fois atteint
                 if coin and coin:IsDescendantOf(workspace) then
                     coin:Destroy()
                 end
+                coinRemovedConnection:Disconnect()
                 setNoClip(false)
+                wait(0.1)  -- Petit délai pour éviter les appels trop fréquents
                 moveToCoin()  -- Passer à la pièce suivante
             end)
         end
     else
         print("Aucune pièce trouvée.")
         setNoClip(false)
+		wait(1)
+		moveToCoin()
     end
 end
 
@@ -197,7 +204,7 @@ local function onCharacterAdded(newCharacter)
     rootPart = character:WaitForChild("HumanoidRootPart")
 
     if active_AutoFarm then
-        startAutoFarm() -- Redémarre proprement si actif
+        moveToCoin() -- Redémarre proprement si actif
     end
 end
 
