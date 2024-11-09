@@ -212,7 +212,7 @@ end
 -- Initialisation
 player.CharacterAdded:Connect(onCharacterAdded)
 character = player.Character or player.CharacterAdded:Wait()
-rootPart = character:WaitForChild("HumanoidRootPart")]]
+rootPart = character:WaitForChild("HumanoidRootPart")
 
 --[[if not bodyCreated then
                 --bodyCreated = true
