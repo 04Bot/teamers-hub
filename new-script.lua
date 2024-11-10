@@ -91,6 +91,12 @@ local function findNearestCoin()
         if obj.Name == "CoinContainer" then
             for _, coin in ipairs(obj:GetDescendants()) do
                 if coin:IsA("MeshPart") then
+                    -- Vérifie si le parent du coin contient un objet "TouchInterest"
+                    if not coin.Parent:FindFirstChild("TouchInterest") then
+                        -- Si pas de "TouchInterest", passer au prochain coin
+                        continue
+                    end
+
                     local distance = (coin.Position - rootPart.Position).Magnitude
                     if distance < closestDistance then
                         closestDistance = distance
@@ -125,15 +131,12 @@ local function moveToCoin()
                 moveToCoin()  -- Relancer la recherche de pièce
             end
         end)
-	print(distance)
 
         if distance <= 1 then
             coinRemovedConnection:Disconnect()
             setNoClip(false)
             wait(0.1)
-            if coin and coin:IsDescendantOf(game.Workspace) then
-                coin:Destroy()
-            end
+            --coin:Destroy()
             isFarming = false
             moveToCoin()
         elseif distance > 300 then
