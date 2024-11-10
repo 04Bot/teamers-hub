@@ -133,31 +133,42 @@ local function moveToCoin()
 
     -- Définir le tween vers la position enregistrée
     local distance = (targetPosition - rootPart.Position).Magnitude
+    -- Si la pièce est très proche (distance ≤ 1), on la considère comme ramassée
     if distance <= 1 then
-        -- Réinitialise si la position est atteinte
         setNoClip(false)
-        targetPosition = nil
+        targetPosition = nil  -- Efface la position de la pièce actuelle
         isFarming = false
-	coin:Destroy()
         wait(0.1)
-        moveToCoin()
-    else
-        local duration = distance / speed
-        local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-        local rootTweenGoal = CFrame.new(targetPosition.X, targetPosition.Y, targetPosition.Z)
-
-        rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
-        rootTween:Play()
-
-        -- Quand le tween est terminé, on réinitialise et relance la recherche
-        rootTween.Completed:Connect(function()
-            setNoClip(false)
-            targetPosition = nil
-            isFarming = false
-            wait(0.1)
-            moveToCoin()
-        end)
+        moveToCoin()  -- Recherche de la pièce suivante
+        return
     end
+
+    -- Si la pièce est trop loin (distance > 300), téléportation instantanée vers la pièce
+    if distance > 300 then
+        rootPart.CFrame = CFrame.new(targetPosition)
+        targetPosition = nil  -- Efface la position de la pièce actuelle
+        isFarming = false
+        wait(0.1)
+        moveToCoin()  -- Recherche de la pièce suivante
+        return
+    end
+	
+    -- Calcul du tween pour se déplacer en douceur vers la position cible
+    local duration = distance / speed
+    local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+    local rootTweenGoal = CFrame.new(targetPosition)
+
+    rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
+    rootTween:Play()
+
+    -- Lorsque le tween est terminé, on réinitialise et recherche une nouvelle pièce
+    rootTween.Completed:Connect(function()
+        setNoClip(false)
+        targetPosition = nil  -- Efface la position de la pièce actuelle
+        isFarming = false
+        wait(0.1)
+        moveToCoin()  -- Recherche de la pièce suivante
+    end)
 end
 
 -- Fonction pour démarrer l'auto-farm
