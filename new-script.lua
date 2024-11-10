@@ -1,6 +1,6 @@
---loadstring(game:HttpGet("https://raw.githubusercontent.com/s-o-a-b/nexus/main/loadstring"))()
 --loadstring(game:HttpGet("https://raw.githubusercontent.com/04Bot/teamers-hub/refs/heads/main/new-script.lua"))()
---loadstring(game:HttpGet("https://raw.githubusercontent.com/dqtixz/dark-dex/refs/heads/main/for%20solara%20v3", true))()
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/s-o-a-b/nexus/main/loadstring"))()
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/04Bot/teamers-hub/refs/heads/main/dex.lua"))()
 print('V 1.0.0')
 
 local gui = Instance.new("ScreenGui")
