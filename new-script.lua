@@ -109,34 +109,40 @@ local isFarming = false
 local function moveToCoin()
     if not active_AutoFarm or isFarming then return end
 
-    isFarming = true
+    isFarming = true  -- Définir le drapeau pour empêcher la réexécution
     local coin, distance = findNearestCoin()
 
-    while active_AutoFarm and coin and coin:IsDescendantOf(workspace) do
-        coin, distance = findNearestCoin()
+    if coin then
+        setNoClip(true)
 
-        if not coin then
-            print("Aucune pièce trouvée.")
-            setNoClip(false)
-            isFarming = false
-            wait(1)
-            break
-        end
+        local coinRemovedConnection
+        coinRemovedConnection = coin.AncestryChanged:Connect(function()
+            if not coin:IsDescendantOf(workspace) then
+                coinRemovedConnection:Disconnect()
+		rootTween:Cancel()
+                setNoClip(false)
+                wait(0.1)
+                isFarming = false  -- Réinitialiser le drapeau
+                moveToCoin()  -- Relancer la recherche de pièce
+            end
+        end)
+	print(distance)
 
-        -- Si la distance est inférieure ou égale à 1, on ramasse la pièce
         if distance <= 1 then
-            if coin and coin:IsDescendantOf(workspace) then
+            coinRemovedConnection:Disconnect()
+            setNoClip(false)
+            wait(0.1)
+            if coin and coin:IsDescendantOf(game.Workspace) then
                 coin:Destroy()
             end
-            wait(0.1)
-            break
-
-        -- Si la pièce est trop loin, on téléporte directement le joueur
+            isFarming = false
+            moveToCoin()
         elseif distance > 300 then
-            rootTween:Cancel()
+	    rootTween:Cancel()
             rootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
-
-        -- Sinon, on crée un Tween pour déplacer le joueur vers la pièce
+            coinRemovedConnection:Disconnect()
+            isFarming = false
+            moveToCoin()
         else
             local duration = distance / speed
             local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
@@ -144,15 +150,20 @@ local function moveToCoin()
 
             rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
             rootTween:Play()
+
+            rootTween.Completed:Connect(function()
+                coinRemovedConnection:Disconnect()
+                setNoClip(false)
+                wait(0.1)
+                isFarming = false
+                moveToCoin()
+            end)
         end
-
-        wait(0.1)  -- Petite pause pour éviter de trop charger le serveur
-    end
-
-    setNoClip(false)
-    isFarming = false
-    wait(1)
-    if active_AutoFarm then
+    else
+        print("Aucune pièce trouvée.")
+        setNoClip(false)
+        isFarming = false
+        wait(1)
         moveToCoin()
     end
 end
