@@ -62,6 +62,7 @@ local humanoid = character:WaitForChild("Humanoid")
 
 local active_AutoFarm = false
 local TweenService = game:GetService("TweenService")
+local rootTween
 
 -- Fonction pour activer le noclip
 local function setNoClip(state)
@@ -116,8 +117,7 @@ local function moveToCoin()
 
         local coinRemovedConnection
         coinRemovedConnection = coin.AncestryChanged:Connect(function()
-            if not coin:IsDescendantOf(workspace) then
-		print("yh")
+            if not coin:IsDescendantOf(game.Workspace) then
                 coinRemovedConnection:Disconnect()
                 setNoClip(false)
                 wait(0.1)
@@ -127,7 +127,7 @@ local function moveToCoin()
         end)
 	print(distance)
 
-        if distance <= 0.7 then
+        if distance <= 1 then
             coinRemovedConnection:Disconnect()
             setNoClip(false)
             wait(0.1)
@@ -137,6 +137,7 @@ local function moveToCoin()
             isFarming = false
             moveToCoin()
         elseif distance > 300 then
+	    rootTween:Cancel()
             rootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
             coinRemovedConnection:Disconnect()
             isFarming = false
@@ -146,7 +147,7 @@ local function moveToCoin()
             local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
             local rootTweenGoal = CFrame.new(coin.Position.X, coin.Position.Y, coin.Position.Z)
 
-            local rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
+            rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
             rootTween:Play()
 
             rootTween.Completed:Connect(function()
