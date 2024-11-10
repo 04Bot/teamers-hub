@@ -1,6 +1,8 @@
 --loadstring(game:HttpGet("https://raw.githubusercontent.com/s-o-a-b/nexus/main/loadstring"))()
 --loadstring(game:HttpGet("https://raw.githubusercontent.com/04Bot/teamers-hub/refs/heads/main/new-script.lua"))()
 --loadstring(game:HttpGet("https://raw.githubusercontent.com/dqtixz/dark-dex/refs/heads/main/for%20solara%20v3", true))()
+print("V 1.0.0")
+
 local gui = Instance.new("ScreenGui")
 gui.Parent = game.CoreGui
 gui.ResetOnSpawn = false
@@ -109,42 +111,50 @@ local isFarming = false
 local function moveToCoin()
     if not active_AutoFarm or isFarming then return end
 
-    isFarming = true  -- Définir le drapeau pour empêcher la réexécution
+    isFarming = true
     local coin, distance = findNearestCoin()
 
     if coin then
         setNoClip(true)
 
+        -- Créer une connexion pour vérifier si la pièce est détruite ou retirée du workspace
         local coinRemovedConnection
         coinRemovedConnection = coin.AncestryChanged:Connect(function()
             if not coin:IsDescendantOf(workspace) then
+                -- Si la pièce est supprimée, annuler le déplacement et arrêter le noclip
                 coinRemovedConnection:Disconnect()
-		rootTween:Cancel()
+                if rootTween then
+                    rootTween:Cancel() -- Arrête le déplacement en cours
+                end
                 setNoClip(false)
                 wait(0.1)
-                isFarming = false  -- Réinitialiser le drapeau
-                moveToCoin()  -- Relancer la recherche de pièce
+                isFarming = false
+                moveToCoin() -- Relance la recherche d'une nouvelle pièce
             end
         end)
-	print(distance)
 
+        -- Vérifie si la pièce est proche et peut être collectée
         if distance <= 1 then
             coinRemovedConnection:Disconnect()
             setNoClip(false)
             wait(0.1)
-            if coin and coin:IsDescendantOf(game.Workspace) then
+            if coin and coin:IsDescendantOf(workspace) then
                 coin:Destroy()
             end
             isFarming = false
             moveToCoin()
+
+        -- Si la pièce est loin, téléporte le joueur directement vers elle
         elseif distance > 300 then
-	    if rootTween then 
-		rootTween:Cancel()
-	    end
+            if rootTween then
+                rootTween:Cancel()
+            end
             rootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
             coinRemovedConnection:Disconnect()
             isFarming = false
             moveToCoin()
+
+        -- Sinon, utilise un tween pour déplacer le joueur vers la pièce
         else
             local duration = distance / speed
             local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
