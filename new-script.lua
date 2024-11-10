@@ -138,6 +138,7 @@ local function moveToCoin()
         setNoClip(false)
         targetPosition = nil
         isFarming = false
+	coin:Destroy()
         wait(0.1)
         moveToCoin()
     else
