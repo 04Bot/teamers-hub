@@ -117,6 +117,7 @@ local function moveToCoin()
         local coinRemovedConnection
         coinRemovedConnection = coin.AncestryChanged:Connect(function()
             if not coin:IsDescendantOf(workspace) then
+		print("yh")
                 coinRemovedConnection:Disconnect()
                 setNoClip(false)
                 wait(0.1)
@@ -124,12 +125,13 @@ local function moveToCoin()
                 moveToCoin()  -- Relancer la recherche de pièce
             end
         end)
+	print(distance)
 
         if distance <= 0.7 then
             coinRemovedConnection:Disconnect()
             setNoClip(false)
             wait(0.1)
-            if coin and coin:IsDescendantOf(workspace) then
+            if coin and coin:IsDescendantOf(game.Workspace) then
                 coin:Destroy()
             end
             isFarming = false
