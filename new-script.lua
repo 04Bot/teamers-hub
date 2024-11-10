@@ -1,7 +1,7 @@
 --loadstring(game:HttpGet("https://raw.githubusercontent.com/s-o-a-b/nexus/main/loadstring"))()
 --loadstring(game:HttpGet("https://raw.githubusercontent.com/04Bot/teamers-hub/refs/heads/main/new-script.lua"))()
 --loadstring(game:HttpGet("https://raw.githubusercontent.com/dqtixz/dark-dex/refs/heads/main/for%20solara%20v3", true))()
-print("V 1.0.0")
+print("V 1.0.1")
 
 local gui = Instance.new("ScreenGui")
 gui.Parent = game.CoreGui
@@ -131,8 +131,11 @@ local function moveToCoin()
                 moveToCoin() -- Relance la recherche d'une nouvelle pièce
         end)
 
+	print(distance)
+
         -- Vérifie si la pièce est proche et peut être collectée
         if distance <= 1 then
+	    print("kk")
             coinRemovedConnection:Disconnect()
             setNoClip(false)
             wait(0.1)
@@ -168,7 +171,7 @@ local function moveToCoin()
             end)
         end
     else
-        print("Aucune pièce trouvée.")
+        --print("Aucune pièce trouvée.")
         setNoClip(false)
         isFarming = false
         wait(1)
@@ -220,9 +223,7 @@ local function reset()
 	local coinText = player.PlayerGui.MainGUI.Game.CoinBags.Container.Candy.CurrencyFrame.Icon.Coins
 
 	coinText:GetPropertyChangedSignal("Text"):Connect(function()
-	print(coinText.Text)
 	if coinText.Text == "40" then
-		print("yh")
 		player.Character.Humanoid.Health = 0
 	end
 end)
