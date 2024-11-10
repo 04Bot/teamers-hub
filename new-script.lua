@@ -120,7 +120,6 @@ local function moveToCoin()
         -- Créer une connexion pour vérifier si la pièce est détruite ou retirée du workspace
         local coinRemovedConnection
         coinRemovedConnection = coin.AncestryChanged:Connect(function()
-            if not coin:IsDescendantOf(workspace) then
                 -- Si la pièce est supprimée, annuler le déplacement et arrêter le noclip
                 coinRemovedConnection:Disconnect()
                 if rootTween then
@@ -130,7 +129,6 @@ local function moveToCoin()
                 wait(0.1)
                 isFarming = false
                 moveToCoin() -- Relance la recherche d'une nouvelle pièce
-            end
         end)
 
         -- Vérifie si la pièce est proche et peut être collectée
@@ -138,9 +136,7 @@ local function moveToCoin()
             coinRemovedConnection:Disconnect()
             setNoClip(false)
             wait(0.1)
-            if coin and coin:IsDescendantOf(workspace) then
                 coin:Destroy()
-            end
             isFarming = false
             moveToCoin()
 
