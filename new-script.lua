@@ -229,7 +229,7 @@ local function onCharacterAdded(newCharacter)
 
     if active_AutoFarm then
 		stopAutoFarm()
-        wait(2)
+        wait(4)
 		startAutoFarm()
 		reset()
     end
