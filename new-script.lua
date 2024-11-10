@@ -117,53 +117,45 @@ local function moveToCoin()
     if coin then
         setNoClip(true)
 
-        -- Créer une connexion pour vérifier si la pièce est détruite ou retirée du workspace
+        -- Enregistrer la position de la pièce
+        local targetPosition = coin.Position
+
         local coinRemovedConnection
         coinRemovedConnection = coin.AncestryChanged:Connect(function()
-                -- Si la pièce est supprimée, annuler le déplacement et arrêter le noclip
+            if coinRemovedConnection then
                 coinRemovedConnection:Disconnect()
-                if rootTween then
-                    rootTween:Cancel() -- Arrête le déplacement en cours
-                end
-                setNoClip(false)
-                wait(0.1)
-                isFarming = false
-                moveToCoin() -- Relance la recherche d'une nouvelle pièce
-        end)
-
-	print(distance)
-
-        -- Vérifie si la pièce est proche et peut être collectée
-        if distance <= 1 then
-	    print("kk")
-            coinRemovedConnection:Disconnect()
-            setNoClip(false)
-            wait(0.1)
-                coin:Destroy()
-            isFarming = false
-            moveToCoin()
-
-        -- Si la pièce est loin, téléporte le joueur directement vers elle
-        elseif distance > 300 then
+            end
             if rootTween then
                 rootTween:Cancel()
             end
-            rootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
+            setNoClip(false)
+            isFarming = false
+            rootPart.CFrame = CFrame.new(rootPart.Position)  -- Fixer la position actuelle
+            wait(0.5)
+            moveToCoin()  -- Relancer la recherche d'une nouvelle pièce
+        end)
+
+        if distance <= 1 then
             coinRemovedConnection:Disconnect()
+            setNoClip(false)
+            wait(0.1)
+            if coin and coin:IsDescendantOf(game.Workspace) then
+                coin:Destroy()
+            end
             isFarming = false
             moveToCoin()
-
-        -- Sinon, utilise un tween pour déplacer le joueur vers la pièce
         else
             local duration = distance / speed
             local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-            local rootTweenGoal = CFrame.new(coin.Position.X, coin.Position.Y, coin.Position.Z)
+            local rootTweenGoal = CFrame.new(targetPosition.X, targetPosition.Y, targetPosition.Z)
 
             rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
             rootTween:Play()
 
             rootTween.Completed:Connect(function()
-                coinRemovedConnection:Disconnect()
+                if coinRemovedConnection then
+                    coinRemovedConnection:Disconnect()
+                end
                 setNoClip(false)
                 wait(0.1)
                 isFarming = false
@@ -171,7 +163,7 @@ local function moveToCoin()
             end)
         end
     else
-        --print("Aucune pièce trouvée.")
+        print("Aucune pièce trouvée.")
         setNoClip(false)
         isFarming = false
         wait(1)
