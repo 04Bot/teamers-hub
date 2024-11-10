@@ -107,67 +107,55 @@ local function findNearestCoin()
 end
 
 local isFarming = false
+local targetPosition  -- Variable globale pour enregistrer la position cible de la pièce
 
 local function moveToCoin()
     if not active_AutoFarm or isFarming then return end
 
     isFarming = true
-    local coin, distance = findNearestCoin()
 
-    if coin then
-        setNoClip(true)
-
-        -- Enregistrer la position de la pièce
-        local targetPosition = coin.Position
-
-        local coinRemovedConnection
-        coinRemovedConnection = coin.AncestryChanged:Connect(function()
-            if coinRemovedConnection then
-                coinRemovedConnection:Disconnect()
-            end
-            if rootTween then
-                rootTween:Cancel()
-            end
-            setNoClip(false)
-            isFarming = false
-            rootPart.CFrame = CFrame.new(rootPart.Position)  -- Fixer la position actuelle
-            wait(0.5)
-            moveToCoin()  -- Relancer la recherche d'une nouvelle pièce
-        end)
-
-        if distance <= 1 then
-            coinRemovedConnection:Disconnect()
-            setNoClip(false)
-            wait(0.1)
-            if coin and coin:IsDescendantOf(game.Workspace) then
-                coin:Destroy()
-            end
-            isFarming = false
-            moveToCoin()
+    -- Vérifie si on a déjà une position enregistrée, sinon trouve la pièce la plus proche
+    if not targetPosition then
+        local coin, distance = findNearestCoin()
+        if coin then
+            targetPosition = coin.Position  -- Enregistre la position de la pièce trouvée
         else
-            local duration = distance / speed
-            local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
-            local rootTweenGoal = CFrame.new(targetPosition.X, targetPosition.Y, targetPosition.Z)
-
-            rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
-            rootTween:Play()
-
-            rootTween.Completed:Connect(function()
-                if coinRemovedConnection then
-                    coinRemovedConnection:Disconnect()
-                end
-                setNoClip(false)
-                wait(0.1)
-                isFarming = false
-                moveToCoin()
-            end)
+            print("Aucune pièce trouvée.")
+            setNoClip(false)
+            isFarming = false
+            wait(1)
+            moveToCoin()
+            return
         end
-    else
-        print("Aucune pièce trouvée.")
+    end
+
+    setNoClip(true)
+
+    -- Définir le tween vers la position enregistrée
+    local distance = (targetPosition - rootPart.Position).Magnitude
+    if distance <= 1 then
+        -- Réinitialise si la position est atteinte
         setNoClip(false)
+        targetPosition = nil
         isFarming = false
-        wait(1)
+        wait(0.1)
         moveToCoin()
+    else
+        local duration = distance / speed
+        local rootTweenInfo = TweenInfo.new(duration, Enum.EasingStyle.Linear, Enum.EasingDirection.Out)
+        local rootTweenGoal = CFrame.new(targetPosition.X, targetPosition.Y, targetPosition.Z)
+
+        rootTween = TweenService:Create(rootPart, rootTweenInfo, {CFrame = rootTweenGoal})
+        rootTween:Play()
+
+        -- Quand le tween est terminé, on réinitialise et relance la recherche
+        rootTween.Completed:Connect(function()
+            setNoClip(false)
+            targetPosition = nil
+            isFarming = false
+            wait(0.1)
+            moveToCoin()
+        end)
     end
 end
 
