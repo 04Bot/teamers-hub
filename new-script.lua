@@ -140,7 +140,9 @@ local function moveToCoin()
             isFarming = false
             moveToCoin()
         elseif distance > 300 then
-	    rootTween:Cancel()
+	    if rootTween then
+	    	rootTween:Cancel()
+	    end
             rootPart.CFrame = CFrame.new(coin.Position.X, coin.Position.Y + 0.5, coin.Position.Z)
             coinRemovedConnection:Disconnect()
             isFarming = false
